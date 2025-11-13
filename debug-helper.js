@@ -29,8 +29,10 @@ window.debugDdakpilmo = function() {
   
   // 3. 데이터 확인
   console.log("💾 Data:");
-  console.log("- initialSites:", typeof initialSites !== 'undefined' ? initialSites.length : 'undefined');
-  console.log("- defaultCategories:", typeof defaultCategories !== 'undefined' ? Object.keys(defaultCategories).length : 'undefined');
+  const rawSites = window.state?.rawSites || window.dataLoader?.sites || [];
+  const categories = window.state?.categories || window.dataLoader?.categories || {};
+  console.log("- rawSites:", rawSites.length);
+  console.log("- categories:", Object.keys(categories).length);
   console.log("");
   
   // 4. 필터링 결과

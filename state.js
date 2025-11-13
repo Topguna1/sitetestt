@@ -6,6 +6,8 @@
 const state = {
   // 사이트 데이터
   sites: [],
+  rawSites: [],
+  categories: {},
   
   // 필터 상태
   currentAgeFilter: "all",
@@ -50,4 +52,7 @@ function resetState() {
   state.currentSearchQuery = "";
   state.currentPageByCategory = {};
   state.expandedCategories = {};
+  state.sites = [];
+  state.rawSites = [];
+  state.categories = {};
 }
