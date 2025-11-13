@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌟 딱필모 indev</title>
+
+  <!-- ======================== CSS ======================== -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Pretendard 폰트 -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+
+  <!-- ============== 데이터 (항상 가장 먼저 로드) ============== -->
+  <script src="categories-data.js" defer></script>
+  <script src="sites-data.js" defer></script>
+
+  <!-- ================== 유틸리티 / 공통 모듈 ================== -->
+  <script src="state.js" defer></script>
+  <script src="utils.js" defer></script>
+  <script src="error-handling.js" defer></script>
+  <script src="memory-manager.js" defer></script>
+
+  <!-- ================ 핵심 기능(순서 중요!) ================ -->
+  <script src="config.js" defer></script>
+  <script src="theme.js" defer></script>
+  <script src="search.js" defer></script>
+  <script src="filters.js" defer></script>
+  <script src="render.js" defer></script>
+  <script src="highlight.js" defer></script>
+  <script src="events.js" defer></script>
+
+  <!-- ==================== 초기화 ==================== -->
+  <script src="init.js" defer></script>
+
+  <!-- 개발 중 디버깅 헬퍼 (필요할 때만 켜기) -->
+  <!-- <script src="debug-helper.js" defer></script> -->
+</head>
+
+<body>
+  <div class="container">
+    <!-- ======================== 헤더 ======================== -->
+    <header class="header">
+      <h1>🌟 딱필모</h1>
+      <p>어떤 사이트를 사용해야 할 지 모르는 당신을 위해서 딱 필요한 사이트 모음</p>
+    </header>
+
+    <!-- ======================== 상단 컨트롤 ======================== -->
+    <div class="top-controls">
+      <div class="search-box">
+        <input 
+          id="searchInput" 
+          placeholder="사이트 이름이나 설명으로 검색하세요"
+          autocomplete="off"
+          aria-label="사이트 검색"
+        />
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <div id="autocomplete-list" class="autocomplete-items" role="listbox"></div>
+      </div>
+
+      <nav class="filter-tabs" id="filterTabs" role="tablist" aria-label="카테고리 필터"></nav>
+
+      <button class="dark-toggle" id="darkToggle" aria-label="다크 모드 전환">
+        🌙 다크 모드
+      </button>
+    </div>
+
+    <!-- ======================== 필터 영역 ======================== -->
+    <div class="filters">
+      <div class="filter-group">
+        <label for="ageFilter">🎯 연령대</label>
+        <div class="filter-buttons" id="ageFilter" role="group">
+          <button class="filter-btn active" data-age="all">전체</button>
+          <button class="filter-btn" data-age="elem">초등</button>
+          <button class="filter-btn" data-age="mid">중등</button>
+          <button class="filter-btn" data-age="high">고등</button>
+          <button class="filter-btn" data-age="adult">성인</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label for="subjectFilter">📚 과목</label>
+        <select id="subjectFilter" aria-label="과목 선택">
+          <option value="all">전체 과목</option>
+          <option value="korean">국어</option>
+          <option value="math">수학</option>
+          <option value="english">영어</option>
+          <option value="science">과학</option>
+          <option value="social">사회</option>
+          <option value="history">역사</option>
+          <option value="art">예술</option>
+          <option value="music">음악</option>
+          <option value="pe">체육</option>
+          <option value="tech">기술</option>
+          <option value="coding">코딩</option>
+          <option value="language">외국어</option>
+          <option value="general">종합</option>
+          <option value="exam">시험대비</option>
+          <option value="career">진로</option>
+        </select>
+      </div>
+
+      <button class="reset-btn" id="resetBtn" aria-label="필터 초기화">
+        🔄 필터 초기화
+      </button>
+    </div>
+
+    <!-- ======================== 통계 바 ======================== -->
+    <div class="stats" id="statsBar">
+      <div class="stats-item">
+        <label for="itemsPerPage">📄 페이지당:</label>
+        <select id="itemsPerPage">
+          <option value="5">5개</option>
+          <option value="10" selected>10개</option>
+          <option value="20">20개</option>
+        </select>
+      </div>
+
+      <div class="stats-item" id="paginationInfo">📄 0개씩 보기 · 0/0 페이지</div>
+
+      <div class="stats-item">
+        <span>📊 총</span>
+        <strong id="totalCount">0</strong>
+        <span>개 사이트</span>
+      </div>
+
+      <div class="stats-item">
+        <span>🔎 검색 결과:</span>
+        <strong id="filteredCount">0</strong>
+        <span>개</span>
+      </div>
+
+      <button class="view-all-btn" id="viewAllBtn" aria-label="전체 사이트 보기">
+        📖 전체 사이트 보기
+      </button>
+    </div>
+
+    <!-- ======================== 사이트 출력 영역 ======================== -->
+    <main id="categoriesContainer" class="categories-container"></main>
+
+    <!-- ======================== 결과 없음 메시지 ======================== -->
+    <div id="noResults" class="no-results" style="display:none;" role="status">
+      <h3>🔍 조건에 맞는 사이트가 없습니다</h3>
+      <p>필터나 검색어를 변경해보세요.</p>
+    </div>
+  </div>
+
+  <!-- ======================== 푸터 ======================== -->
+  <footer style="
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+    margin-top: 40px;
+    font-size: 14px;
+    line-height: 1.8;
+  ">
+    <div style="max-width: 800px; margin: 0 auto;">
+      <h3 style="margin-bottom: 20px; font-size: 18px;">🌟 딱필모</h3>
+      <p style="margin-bottom: 16px;">
+        어떤 사이트를 사용해야 할 지 모르는 당신을 위해서 유용한 사이트들을 모았습니다.
+      </p>
+      <p style="margin-bottom: 24px; font-size: 13px; opacity: 0.8;">
+        이 사이트는 AI를 활용해 제작되었으며, 개인 목적으로 운영됩니다.<br />
+        모든 외부 링크는 각각의 소유자에게 저작권이 있습니다.
+      </p>
+
+      <div style="
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      ">
+        <span>📊 총 <strong>150+</strong>개 사이트</span>
+        <span>🎯 <strong>13</strong>개 카테고리</span>
+      </div>
+
+      <p style="font-size: 12px; opacity: 0.7;">
+        © 2025 딱필모 | ver 101 |
+        <span style="color: #3498db;"> 문의는 디스코드 에서 받습니다.</span>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
