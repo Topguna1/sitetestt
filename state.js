@@ -3,9 +3,11 @@
  * 모든 필터, 검색어, 페이지 상태를 중앙에서 관리
  */
 
-const state = {
+const baseState = {
   // 사이트 데이터
   sites: [],
+  rawSites: [],
+  categories: {},
   
   // 필터 상태
   currentAgeFilter: "all",
@@ -23,26 +25,21 @@ const state = {
   expandedCategories: {}
 };
 
-// 상태 변경 감지 (디버깅용)
-if (typeof Proxy !== 'undefined') {
-  window.state = new Proxy(state, {
-    set(target, property, value) {
-      const oldValue = target[property];
-      target[property] = value;
-      
-      // 디버그 모드에서만 로그
-      if (window.DEBUG_MODE) {
-        console.log(`[State] ${property}: ${oldValue} → ${value}`);
-      }
-      
-      return true;
-    }
-  });
-} else {
-  window.state = state;
-}
+const state = typeof Proxy !== "undefined"
+  ? new Proxy(baseState, {
+      set(target, property, value) {
+        const oldValue = target[property];
+        target[property] = value;
 
-// 상태 초기화 함수
+        if (typeof window !== "undefined" && window.DEBUG_MODE) {
+          console.log(`[State] ${property}: ${oldValue} → ${value}`);
+        }
+
+        return true;
+      }
+    })
+  : baseState;
+
 function resetState() {
   state.currentAgeFilter = "all";
   state.currentCategoryFilter = "all";
@@ -50,4 +47,14 @@ function resetState() {
   state.currentSearchQuery = "";
   state.currentPageByCategory = {};
   state.expandedCategories = {};
+  state.sites = [];
+  state.rawSites = [];
+  state.categories = {};
+}
+
+export { state, resetState };
+
+if (typeof window !== "undefined") {
+  window.state = state;
+  window.resetAppState = resetState;
 }
