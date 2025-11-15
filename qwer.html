@@ -12,30 +12,8 @@
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
 
-  <!-- ============== 데이터 (항상 가장 먼저 로드) ============== -->
-  <script src="categories-data.js" defer></script>
-  <script src="sites-data.js" defer></script>
-
-  <!-- ================== 유틸리티 / 공통 모듈 ================== -->
-  <script src="state.js" defer></script>
-  <script src="utils.js" defer></script>
-  <script src="error-handling.js" defer></script>
-  <script src="memory-manager.js" defer></script>
-
-  <!-- ================ 핵심 기능(순서 중요!) ================ -->
-  <script src="config.js" defer></script>
-  <script src="theme.js" defer></script>
-  <script src="search.js" defer></script>
-  <script src="filters.js" defer></script>
-  <script src="render.js" defer></script>
-  <script src="highlight.js" defer></script>
-  <script src="events.js" defer></script>
-
-  <!-- ==================== 초기화 ==================== -->
-  <script src="init.js" defer></script>
-
-  <!-- 개발 중 디버깅 헬퍼 (필요할 때만 켜기) -->
-  <!-- <script src="debug-helper.js" defer></script> -->
+  <!-- ================== 모듈 진입점 ================== -->
+  <script type="module" src="main.js"></script>
 </head>
 
 <body>
@@ -117,7 +95,7 @@
         </select>
       </div>
 
-      <div class="stats-item" id="paginationInfo">📄 0개씩 보기 · 0/0 페이지</div>
+      <div class="stats-item" id="paginationInfo" aria-live="polite">📄 0개씩 보기 · 0/0 페이지</div>
 
       <div class="stats-item">
         <span>📊 총</span>
@@ -125,7 +103,7 @@
         <span>개 사이트</span>
       </div>
 
-      <div class="stats-item">
+      <div class="stats-item" aria-live="polite">
         <span>🔎 검색 결과:</span>
         <strong id="filteredCount">0</strong>
         <span>개</span>
