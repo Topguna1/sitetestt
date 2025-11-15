@@ -4,7 +4,7 @@
  */
 
 // HTML 이스케이프
-function escapeHtml(str) {
+export function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -14,7 +14,7 @@ function escapeHtml(str) {
 }
 
 // 디바운스 함수
-function debounce(func, wait) {
+export function debounce(func, wait) {
   let timeoutId;
   const timerManager = window.memoryManager?.timerManager;
   
@@ -41,7 +41,7 @@ function debounce(func, wait) {
 }
 
 // 토스트 알림
-function showToast(message, type = 'info', duration = 3000) {
+export function showToast(message, type = 'info', duration = 3000) {
   try {
     const existingToast = document.querySelector('.toast');
     if (existingToast) existingToast.remove();
@@ -81,7 +81,7 @@ function showToast(message, type = 'info', duration = 3000) {
 }
 
 // 초성 추출
-function getChosung(str) {
+export function getChosung(str) {
   const CHOSUNG_LIST = window.ddakpilmoConfig?.CHOSUNG_LIST || [
     "ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ",
     "ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"
@@ -100,7 +100,7 @@ function getChosung(str) {
 }
 
 // 부드러운 스크롤
-function smoothScrollToTop(duration = 800) {
+export function smoothScrollToTop(duration = 800) {
   const timerManager = window.memoryManager?.timerManager;
   let scrollAnimationId = null;
   
@@ -168,7 +168,7 @@ function smoothScrollToTop(duration = 800) {
 }
 
 // 카테고리까지 부드럽게 스크롤
-function smoothScrollToCategory(category, duration = 800) {
+export function smoothScrollToCategory(category, duration = 800) {
   const targetEl = document.getElementById(`${category}-section`);
   if (!targetEl) return;
 
@@ -220,7 +220,7 @@ function smoothScrollToCategory(category, duration = 800) {
 }
 
 // 공유 기능
-function shareSite(siteName, url) {
+export function shareSite(siteName, url) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).then(() => {
       showToast("링크가 복사되었습니다!");
@@ -250,5 +250,22 @@ function fallbackCopy(url) {
   document.body.removeChild(ta);
 }
 
-// 전역 노출
-window.shareSite = shareSite;
+export const utils = {
+  escapeHtml,
+  debounce,
+  showToast,
+  getChosung,
+  smoothScrollToTop,
+  smoothScrollToCategory,
+  shareSite
+};
+
+if (typeof window !== 'undefined') {
+  window.escapeHtml = escapeHtml;
+  window.debounce = debounce;
+  window.showToast = showToast;
+  window.getChosung = getChosung;
+  window.smoothScrollToTop = smoothScrollToTop;
+  window.smoothScrollToCategory = smoothScrollToCategory;
+  window.shareSite = shareSite;
+}

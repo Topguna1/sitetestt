@@ -12,27 +12,8 @@
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
 
-  <!-- ================== 유틸리티 / 공통 모듈 ================== -->
-  <script src="state.js" defer></script>
-  <script src="data-loader.js" defer></script>
-  <script src="utils.js" defer></script>
-  <script src="error-handling.js" defer></script>
-  <script src="memory-manager.js" defer></script>
-
-  <!-- ================ 핵심 기능(순서 중요!) ================ -->
-  <script src="config.js" defer></script>
-  <script src="theme.js" defer></script>
-  <script src="search.js" defer></script>
-  <script src="filters.js" defer></script>
-  <script src="render.js" defer></script>
-  <script src="highlight.js" defer></script>
-  <script src="events.js" defer></script>
-
-  <!-- ==================== 초기화 ==================== -->
-  <script src="init.js" defer></script>
-
-  <!-- 개발 중 디버깅 헬퍼 (필요할 때만 켜기) -->
-  <!-- <script src="debug-helper.js" defer></script> -->
+  <!-- ================== 모듈 진입점 ================== -->
+  <script type="module" src="main.js"></script>
 </head>
 
 <body>
