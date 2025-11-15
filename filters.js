@@ -4,13 +4,14 @@
  */
 
 // 데이터 접근 함수
-function getAllCategories() { 
-  return typeof defaultCategories !== 'undefined' ? defaultCategories : {}; 
+function getAllCategories() {
+  const categories = window.state?.categories;
+  return categories && typeof categories === 'object' ? categories : {};
 }
 
-function getCategoryName(key) { 
-  const c = getAllCategories()[key]; 
-  return c ? c.name : key; 
+function getCategoryName(key) {
+  const c = getAllCategories()[key];
+  return c ? c.name : key;
 }
 
 function getCategoryIcon(key) { 
