@@ -34,41 +34,75 @@ function validateCategories(data) {
   return data;
 }
 
-function validateSite(site, index) {
+function validateSite(site, contextLabel) {
   if (!isPlainObject(site)) {
-    throw new Error(`${index + 1}번째 사이트 정보가 객체가 아닙니다.`);
+    throw new Error(`${contextLabel} 사이트 정보가 객체가 아닙니다.`);
   }
+
+  const normalized = { ...site };
 
   const requiredStringFields = ['name', 'url', 'desc', 'category'];
   requiredStringFields.forEach(field => {
-    if (typeof site[field] !== 'string' || site[field].trim() === '') {
-      throw new Error(`${index + 1}번째 사이트의 ${field}가 비어 있습니다.`);
+    if (typeof normalized[field] !== 'string' || normalized[field].trim() === '') {
+      throw new Error(`${contextLabel} 사이트의 ${field}가 비어 있습니다.`);
     }
+    normalized[field] = normalized[field].trim();
   });
 
-  if (!Array.isArray(site.ages) || site.ages.length === 0) {
-    throw new Error(`${index + 1}번째 사이트의 연령 정보가 누락되었습니다.`);
+  if (!Array.isArray(normalized.ages) || normalized.ages.length === 0) {
+    throw new Error(`${contextLabel} 사이트의 연령 정보가 누락되었습니다.`);
   }
+  normalized.ages = normalized.ages.map(value => {
+    if (typeof value !== 'string' || value.trim() === '') {
+      throw new Error(`${contextLabel} 사이트의 연령 값이 올바르지 않습니다.`);
+    }
+    return value.trim();
+  });
 
-  if (!Array.isArray(site.subjects) || site.subjects.length === 0) {
-    throw new Error(`${index + 1}번째 사이트의 과목 정보가 누락되었습니다.`);
+  if (!Array.isArray(normalized.subjects) || normalized.subjects.length === 0) {
+    throw new Error(`${contextLabel} 사이트의 과목 정보가 누락되었습니다.`);
   }
+  normalized.subjects = normalized.subjects.map(value => {
+    if (typeof value !== 'string' || value.trim() === '') {
+      throw new Error(`${contextLabel} 사이트의 과목 값이 올바르지 않습니다.`);
+    }
+    return value.trim();
+  });
 
-  return site;
+  normalized.isGov = normalized.isGov === true;
+
+  return normalized;
 }
 
 function validateSites(data) {
-  if (!Array.isArray(data) || data.length === 0) {
-    throw new Error('사이트 데이터가 비어 있거나 배열이 아닙니다.');
+  if (!isPlainObject(data) || Object.keys(data).length === 0) {
+    throw new Error('사이트 데이터가 비어 있거나 올바른 객체 형식이 아닙니다.');
   }
 
-  return data.map((site, index) => {
-    const validated = validateSite(site, index);
-    if (typeof validated.isGov === 'boolean' && validated.isgov == null) {
-      validated.isgov = validated.isGov;
+  const aggregated = [];
+
+  Object.entries(data).forEach(([categoryKey, sites]) => {
+    if (!Array.isArray(sites) || sites.length === 0) {
+      throw new Error(`카테고리 "${categoryKey}"의 사이트 목록이 비어 있습니다.`);
     }
-    return validated;
+
+    sites.forEach((site, index) => {
+      const contextLabel = `"${categoryKey}" 카테고리의 ${index + 1}번째`;
+      const candidate = { ...site };
+      if (candidate.category == null || candidate.category === '') {
+        candidate.category = categoryKey;
+      }
+      const validated = validateSite(candidate, contextLabel);
+
+      if (validated.category !== categoryKey) {
+        throw new Error(`${contextLabel} 사이트의 category 값이 파일 구조와 일치하지 않습니다.`);
+      }
+
+      aggregated.push(validated);
+    });
   });
+
+  return aggregated;
 }
 
 async function fetchJson(path) {
@@ -91,10 +125,13 @@ const dataLoader = {
 
     this._promise = Promise.all([
       fetchJson(DATA_PATHS.categories).then(validateCategories),
-      fetchJson(DATA_PATHS.sites).then(validateSites)
+      fetchJson(DATA_PATHS.sites)
     ])
-      .then(([categories, sites]) => {
+      .then(([categories, siteGroups]) => {
+        const sites = validateSites(siteGroups);
+
         this.categories = categories;
+        this.siteGroups = siteGroups;
         this.sites = sites;
         this.error = null;
 
