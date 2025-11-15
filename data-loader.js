@@ -67,10 +67,12 @@ function validateSites(data) {
     const hasCamel = typeof validated.isGov === 'boolean';
     const hasLower = typeof validated.isgov === 'boolean';
 
-    if (hasCamel && !hasLower) {
-      validated.isgov = validated.isGov;
-    } else if (!hasCamel && hasLower) {
+    if (!hasCamel && hasLower) {
       validated.isGov = validated.isgov;
+    }
+
+    if ('isgov' in validated) {
+      delete validated.isgov;
     }
 
     return validated;

@@ -58,8 +58,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "K-MOOC",
@@ -73,8 +72,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "Khan Academy",
@@ -267,8 +265,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "공공데이터포털",
@@ -283,8 +280,7 @@
       "social",
       "tech"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국립중앙도서관",
@@ -299,8 +295,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국가과학기술지식정보서비스(NTIS)",
@@ -316,8 +311,7 @@
       "science",
       "tech"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국사편찬위원회",
@@ -332,8 +326,7 @@
     "subjects": [
       "history"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "한국교육학술정보원(KERIS)",
@@ -348,8 +341,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국가통계포털(KOSIS)",
@@ -364,8 +356,7 @@
       "social",
       "math"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "서울열린데이터광장",
@@ -380,8 +371,7 @@
       "social",
       "tech"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "위키백과",
@@ -396,8 +386,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "나무위키",
@@ -426,8 +415,7 @@
     "subjects": [
       "science"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "에듀넷",
@@ -442,8 +430,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "네이버 지식백과",
@@ -526,8 +513,7 @@
       "social",
       "history"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국가기록원",
@@ -542,8 +528,7 @@
       "history",
       "social"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "E나라지표",
@@ -558,8 +543,7 @@
       "social",
       "math"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "네이버 학술정보",
@@ -587,8 +571,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "RISS",
@@ -602,8 +585,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "KISS 학술정보",
@@ -618,8 +600,7 @@
       "general",
       "social"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "DBpia",
@@ -635,8 +616,7 @@
       "science",
       "social"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국가기록원",
@@ -651,8 +631,7 @@
       "history",
       "social"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "법제처 국가법령정보센터",
@@ -666,8 +645,7 @@
     "subjects": [
       "social"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국토연구원",
@@ -682,8 +660,7 @@
       "social",
       "science"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "한국교육학술정보원(KERIS)",
@@ -698,8 +675,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "서울열린데이터광장",
@@ -714,8 +690,7 @@
       "social",
       "tech"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국가통계포털(KOSIS)",
@@ -730,8 +705,7 @@
       "social",
       "math"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "Google Scholar",
@@ -816,8 +790,7 @@
       "korean",
       "math"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "교육부",
@@ -1091,8 +1064,7 @@
     "subjects": [
       "career"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "대학알리미",
@@ -1106,8 +1078,7 @@
     "subjects": [
       "career"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "에듀윌 진로",
@@ -1613,8 +1584,7 @@
     "subjects": [
       "exam"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "컴퓨터 활용능력 기출",
@@ -1628,8 +1598,7 @@
     "subjects": [
       "exam"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "한국사 능력검정시험",
@@ -1643,8 +1612,7 @@
     "subjects": [
       "exam"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "수능 모의고사 자료",
@@ -1657,8 +1625,7 @@
     "subjects": [
       "exam"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "SAT Practice",
@@ -1686,8 +1653,7 @@
     "subjects": [
       "exam"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "대성마이맥",
@@ -1746,8 +1712,7 @@
     "subjects": [
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "서울시 교육청 기출자료",
@@ -1761,8 +1726,7 @@
     "subjects": [
       "exam"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "Inflearn",
@@ -2071,8 +2035,7 @@
       "korean",
       "general"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "리딩게이트",
@@ -2131,8 +2094,7 @@
       "general",
       "korean"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "교보스콜라",
@@ -2220,8 +2182,7 @@
     "subjects": [
       "art"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "한국문화예술위원회",
@@ -2235,8 +2196,7 @@
     "subjects": [
       "art"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "서울문화재단",
@@ -2251,8 +2211,7 @@
       "art",
       "music"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "예술경영지원센터",
@@ -2267,8 +2226,7 @@
       "art",
       "music"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "K-Arts 한국예술종합학교",
@@ -2367,8 +2325,7 @@
     "subjects": [
       "science"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "서울대공원 동물원",
@@ -2383,8 +2340,7 @@
       "science",
       "social"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국립민속박물관",
@@ -2400,8 +2356,7 @@
       "history",
       "social"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국립중앙박물관",
@@ -2417,8 +2372,7 @@
       "history",
       "social"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국립생태원",
@@ -2433,8 +2387,7 @@
     "subjects": [
       "science"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   },
   {
     "name": "국립해양생물자원관",
@@ -2449,7 +2402,6 @@
     "subjects": [
       "science"
     ],
-    "isGov": true,
-    "isgov": true
+    "isGov": true
   }
 ]
