@@ -32,6 +32,12 @@
     return `${base}::${category}`;
   }
 
+  function cardCacheKeyOf(site){
+    const base = siteKeyOf(site);
+    const category = (site && site.category) || 'uncategorized';
+    return `${base}::${category}`;
+  }
+
   // ========= 전역 의존(있으면 사용, 없으면 안전 폴백) =========
   const filterManager = (typeof window !== 'undefined' && window.filterManager) || {};
   const getAllCategoriesSafe = (typeof filterManager.getAllCategories === 'function')
@@ -45,7 +51,9 @@
     : ((typeof filterManager.getFiltered === 'function') ? filterManager.getFiltered : () => []);
   const shareSiteSafe        = (typeof shareSite === 'function') ? shareSite : function(){};
   const state                = (typeof window !== 'undefined' && window.state) ? window.state : { sites: [], ITEMS_PER_PAGE: 5, currentPageByCategory: {}, currentCategoryFilter: 'all' };
-  const GOV_ICON             = (typeof GOV_ICON_DATA_URL !== 'undefined') ? GOV_ICON_DATA_URL : '';
+  const GOV_ICON             = (typeof window !== 'undefined' && window.ddakpilmoConfig)
+    ? (window.ddakpilmoConfig.GOV_ICON_DATA_URL || '')
+    : '';
   const HL                   = (typeof window !== 'undefined' && window.ddakHighlight) ? window.ddakHighlight : { apply(){}, clear(){} };
 
   function normalizeUrlKey(url='') {
