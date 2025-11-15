@@ -20,6 +20,12 @@
   }
   function siteKeyOf(site){ return (site && (site.url || site.name)) || ''; }
 
+  function cardCacheKeyOf(site){
+    const base = siteKeyOf(site);
+    const category = (site && site.category) || 'uncategorized';
+    return `${base}::${category}`;
+  }
+
   // ========= 전역 의존(있으면 사용, 없으면 안전 폴백) =========
   const filterManager = (typeof window !== 'undefined' && window.filterManager) || {};
   const getAllCategoriesSafe = (typeof filterManager.getAllCategories === 'function')
@@ -251,7 +257,7 @@
   }
 
   function createSiteCard(site){
-    const key = siteKeyOf(site);
+    const key = cardCacheKeyOf(site);
     let entry = cardCache.get(key);
     if (!entry) {
       entry = createCardEntry();
@@ -466,7 +472,7 @@
     try {
       const filtered = getFilteredSitesSafe();
       const allSites = Array.isArray(state.sites) ? state.sites : [];
-      const validKeys = new Set(allSites.map(siteKeyOf));
+      const validKeys = new Set(allSites.map(cardCacheKeyOf));
       pruneCardCache(validKeys);
       const categories = Object.keys(getAllCategoriesSafe());
       const hasResults = filtered.length > 0;
@@ -512,7 +518,7 @@
           slice = list.slice(startIdx, endIdx);
         }
 
-        const visibleKeys = slice.map(siteKeyOf);
+        const visibleKeys = slice.map(cardCacheKeyOf);
         const prevKeys = renderState.prevKeysByCategory[category] || [];
 
         if (!shallowEqualArray(prevKeys, visibleKeys)){
