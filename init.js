@@ -129,13 +129,22 @@ function init() {
   console.log("🌟 딱필모 초기화 시작...");
   
   try {
-    // 데이터 확인
-    if (typeof initialSites === 'undefined' || !Array.isArray(initialSites)) {
-      throw new Error("initialSites 데이터를 찾을 수 없습니다");
+    if (!window.state?.categories || Object.keys(window.state.categories).length === 0) {
+      throw new Error("카테고리 데이터를 불러오지 못했습니다");
+    }
+
+    const rawSites = Array.isArray(window.state?.rawSites)
+      ? window.state.rawSites
+      : (window.dataLoader?.sites || []);
+
+    if (!Array.isArray(rawSites) || rawSites.length === 0) {
+      throw new Error("사이트 데이터를 불러오지 못했습니다");
     }
 
     // 사이트 데이터 처리
-    window.state.sites = initialSites.map(site => {
+    window.state.rawSites = rawSites;
+
+    window.state.sites = rawSites.map(site => {
       try {
         const url = site.url || "";
         let isGovAuto = false;
@@ -223,9 +232,15 @@ function handleInitializationFailure(error) {
   }
 }
 
-// DOMContentLoaded 이벤트
-document.addEventListener('DOMContentLoaded', () => {
-  // 단계적 러너로 실행
+let initRegistered = false;
+
+function startInitRunner() {
+  if (initRegistered) {
+    return;
+  }
+
+  initRegistered = true;
+
   window.initRunner.add('legacy:init', () => {
     try {
       init();
@@ -237,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.initRunner.add('ui:highlight', () => {
     try {
-      const q = (window.state?.currentSearchQuery || 
+      const q = (window.state?.currentSearchQuery ||
                  document.getElementById('searchInput')?.value || '').trim();
       if (q && window.ddakHighlight) {
         const scope = document.getElementById('categoriesContainer') || document;
@@ -251,6 +266,29 @@ document.addEventListener('DOMContentLoaded', () => {
   window.initRunner.run().then(rep => {
     console.log('[init] report:', rep, window.initRunner.status());
   });
+}
+
+// DOMContentLoaded 이벤트
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = window.dataLoader;
+
+  if (!loader || typeof loader.load !== 'function') {
+    const error = new Error('데이터 로더를 찾을 수 없습니다.');
+    console.error(error);
+    handleInitializationFailure(error);
+    showToast('⚠️ 필수 데이터를 불러오지 못했습니다', 'error', 5000);
+    return;
+  }
+
+  loader.load()
+    .then(() => {
+      startInitRunner();
+    })
+    .catch(error => {
+      console.error('데이터 로드 실패:', error);
+      handleInitializationFailure(error);
+      showToast('⚠️ 데이터를 불러오는 중 문제가 발생했습니다', 'error', 5000);
+    });
 });
 
 // 윈도우 이벤트
