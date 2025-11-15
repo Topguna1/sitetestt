@@ -21,9 +21,16 @@
   function siteKeyOf(site){ return (site && (site.url || site.name)) || ''; }
 
   // ========= 전역 의존(있으면 사용, 없으면 안전 폴백) =========
-  const getAllCategoriesSafe = (typeof getAllCategories === 'function') ? getAllCategories : () => ({}) ;
-  const getCategoryNameSafe  = (typeof getCategoryName  === 'function') ? getCategoryName  : (k)=>k ;
-  const getFilteredSitesSafe = (typeof getFilteredSitesWithCache === 'function') ? getFilteredSitesWithCache : ((typeof getFilteredSites === 'function') ? getFilteredSites : () => []);
+  const filterManager = (typeof window !== 'undefined' && window.filterManager) || {};
+  const getAllCategoriesSafe = (typeof filterManager.getAllCategories === 'function')
+    ? filterManager.getAllCategories
+    : () => ({}) ;
+  const getCategoryNameSafe  = (typeof filterManager.getCategoryName === 'function')
+    ? filterManager.getCategoryName
+    : (k)=>k ;
+  const getFilteredSitesSafe = (typeof filterManager.getFilteredWithCache === 'function')
+    ? filterManager.getFilteredWithCache
+    : ((typeof filterManager.getFiltered === 'function') ? filterManager.getFiltered : () => []);
   const shareSiteSafe        = (typeof shareSite === 'function') ? shareSite : function(){};
   const state                = (typeof window !== 'undefined' && window.state) ? window.state : { sites: [], ITEMS_PER_PAGE: 5, currentPageByCategory: {}, currentCategoryFilter: 'all' };
   const GOV_ICON             = (typeof GOV_ICON_DATA_URL !== 'undefined') ? GOV_ICON_DATA_URL : '';
