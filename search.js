@@ -2,13 +2,27 @@
 
 function normalizeSiteKey(site) {
   if (!site) return "";
-  const raw = (site.url || site.name || "").toString().trim();
-  if (!raw) return "";
-  return raw
-    .toLowerCase()
-    .replace(/^https?:\/\//, "")
-    .replace(/^www\./, "")
-    .replace(/\/+$/, "");
+  const urlRaw = (site.url || "").toString().trim();
+  if (urlRaw) {
+    try {
+      const parsed = new URL(urlRaw);
+      const host = parsed.hostname.replace(/^www\./i, "");
+      const path = parsed.pathname.replace(/\/+$/, "");
+      return `${host}${path}`.toLowerCase();
+    } catch (err) {
+      // URL 파싱 실패 시 아래 정규화로 폴백
+    }
+    return urlRaw
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/[#?].*$/, "")
+      .replace(/\/+$/, "");
+  }
+
+  const fallback = (site.name || "").toString().trim();
+  if (!fallback) return "";
+  return fallback.toLowerCase().replace(/\s+/g, "-");
 }
 
 class LightweightSearch {

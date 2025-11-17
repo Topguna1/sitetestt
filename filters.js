@@ -21,13 +21,29 @@ function getCategoryIcon(key) {
 
 function normalizeSiteKey(site) {
   if (!site) return "";
-  const raw = (site.url || site.name || "").toString().trim();
-  if (!raw) return "";
-  return raw
+  const urlRaw = (site.url || "").toString().trim();
+  if (urlRaw) {
+    try {
+      const parsed = new URL(urlRaw);
+      const host = parsed.hostname.replace(/^www\./i, "");
+      const path = parsed.pathname.replace(/\/+$/, "");
+      return `${host}${path}`.toLowerCase();
+    } catch (err) {
+      // URL 파싱이 실패하면 아래 이름 기반 정규화로 폴백
+    }
+    return urlRaw
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/[#?].*$/, "")
+      .replace(/\/+$/, "");
+  }
+
+  const fallback = (site.name || "").toString().trim();
+  if (!fallback) return "";
+  return fallback
     .toLowerCase()
-    .replace(/^https?:\/\//, "")
-    .replace(/^www\./, "")
-    .replace(/\/+$/, "");
+    .replace(/\s+/g, "-");
 }
 
 function shouldDedupeAcrossCategories() {
@@ -136,11 +152,13 @@ function getFilteredSites() {
     });
   });
 
-  if (shouldDedupeAcrossCategories()) {
-    filtered = dedupeSites(filtered);
-  }
-
   return filtered;
+}
+
+function getDedupedUnifiedResults(baseList) {
+  if (!shouldDedupeAcrossCategories()) return [];
+  const source = Array.isArray(baseList) ? baseList : getFilteredSites();
+  return dedupeSites(source);
 }
 
 // 캐싱된 필터링 (메모리 관리자 사용)
@@ -212,5 +230,6 @@ window.filterManager = {
   getCategoryName,
   getCategoryIcon,
   getAllCategories,
-  shouldDedupeAcrossCategories
+  shouldDedupeAcrossCategories,
+  getDedupedUnifiedResults
 };
