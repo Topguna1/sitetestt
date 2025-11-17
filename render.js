@@ -26,6 +26,24 @@
     return `${base}::${category}`;
   }
 
+  function cardCacheKeyOf(site){
+    const base = siteKeyOf(site);
+    const category = (site && site.category) || 'uncategorized';
+    return `${base}::${category}`;
+  }
+
+  function cardCacheKeyOf(site){
+    const base = siteKeyOf(site);
+    const category = (site && site.category) || 'uncategorized';
+    return `${base}::${category}`;
+  }
+
+  function cardCacheKeyOf(site){
+    const base = siteKeyOf(site);
+    const category = (site && site.category) || 'uncategorized';
+    return `${base}::${category}`;
+  }
+
   // ========= 전역 의존(있으면 사용, 없으면 안전 폴백) =========
   const filterManager = (typeof window !== 'undefined' && window.filterManager) || {};
   const getAllCategoriesSafe = (typeof filterManager.getAllCategories === 'function')
