@@ -20,13 +20,28 @@
   }
   function siteKeyOf(site){ return (site && (site.url || site.name)) || ''; }
 
+  function cardCacheKeyOf(site){
+    const base = siteKeyOf(site);
+    const category = (site && site.category) || 'uncategorized';
+    return `${base}::${category}`;
+  }
+
   // ========= 전역 의존(있으면 사용, 없으면 안전 폴백) =========
-  const getAllCategoriesSafe = (typeof getAllCategories === 'function') ? getAllCategories : () => ({}) ;
-  const getCategoryNameSafe  = (typeof getCategoryName  === 'function') ? getCategoryName  : (k)=>k ;
-  const getFilteredSitesSafe = (typeof getFilteredSitesWithCache === 'function') ? getFilteredSitesWithCache : ((typeof getFilteredSites === 'function') ? getFilteredSites : () => []);
+  const filterManager = (typeof window !== 'undefined' && window.filterManager) || {};
+  const getAllCategoriesSafe = (typeof filterManager.getAllCategories === 'function')
+    ? filterManager.getAllCategories
+    : () => ({}) ;
+  const getCategoryNameSafe  = (typeof filterManager.getCategoryName === 'function')
+    ? filterManager.getCategoryName
+    : (k)=>k ;
+  const getFilteredSitesSafe = (typeof filterManager.getFilteredWithCache === 'function')
+    ? filterManager.getFilteredWithCache
+    : ((typeof filterManager.getFiltered === 'function') ? filterManager.getFiltered : () => []);
   const shareSiteSafe        = (typeof shareSite === 'function') ? shareSite : function(){};
   const state                = (typeof window !== 'undefined' && window.state) ? window.state : { sites: [], ITEMS_PER_PAGE: 5, currentPageByCategory: {}, currentCategoryFilter: 'all' };
-  const GOV_ICON             = (typeof GOV_ICON_DATA_URL !== 'undefined') ? GOV_ICON_DATA_URL : '';
+  const GOV_ICON             = (typeof window !== 'undefined' && window.ddakpilmoConfig)
+    ? (window.ddakpilmoConfig.GOV_ICON_DATA_URL || '')
+    : '';
   const HL                   = (typeof window !== 'undefined' && window.ddakHighlight) ? window.ddakHighlight : { apply(){}, clear(){} };
 
   function normalizeUrlKey(url='') {
@@ -42,101 +57,65 @@
 
   
   // ========= DOM 빌더 =========
-  function createSiteCard(site){
+  const cardCache = new Map();
+
+  function createCardEntry() {
+    const entry = {
+      lastKey: null,
+      lastSite: null,
+      faviconBroken: false
+    };
+
     const card = document.createElement('div');
     card.className = 'link-card';
-    card.setAttribute('data-site', site.name || '');
 
-    // 왼쪽: favicon
     const left = document.createElement('div');
     left.className = 'card-left';
-    const img = document.createElement('img');
-    img.src = 'https://www.google.com/s2/favicons?sz=64&domain_url=' + encodeURIComponent(site.url || '');
-    img.alt = (site.name || '') + ' favicon';
-    img.className = 'site-favicon';
-    img.onerror = function(){
-      const fallback = document.createElement('div');
-      fallback.className = 'fallback-icon';
-      fallback.textContent = site.name && site.name.length ? site.name.charAt(0).toUpperCase() : '?';
-      img.replaceWith(fallback);
-    };
-    left.appendChild(img);
 
-    // 오른쪽
+    const img = document.createElement('img');
+    img.className = 'site-favicon';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.referrerPolicy = 'no-referrer';
+
+    const fallback = document.createElement('div');
+    fallback.className = 'fallback-icon';
+    fallback.style.display = 'none';
+
+    left.appendChild(img);
+    left.appendChild(fallback);
+
     const right = document.createElement('div');
     right.className = 'card-right';
 
     const header = document.createElement('div');
     header.className = 'link-card-header';
 
-    const a = document.createElement('a');
-    a.href = site.url || '#';
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.className = 'site-title';
-    a.textContent = site.name || '이름 없음';
+    const titleLink = document.createElement('a');
+    titleLink.className = 'site-title';
+    titleLink.target = '_blank';
+    titleLink.rel = 'noopener noreferrer';
 
-    // 정부 배지
-    if (site.isGov === true && GOV_ICON){
-      const govIcon = document.createElement('img');
-      govIcon.className = 'gov-flag korea-gov';
-      govIcon.src = GOV_ICON;
-      govIcon.alt = '대한민국정부 로고';
-      govIcon.title = '대한민국 정부 운영';
-      a.appendChild(govIcon);
-    }
-
-    // 공유 버튼
     const shareBtn = document.createElement('button');
     shareBtn.className = 'share-btn';
     shareBtn.type = 'button';
     shareBtn.textContent = '📤';
     shareBtn.setAttribute('aria-label','공유');
-    shareBtn.addEventListener('click', (e)=>{ e.stopPropagation(); shareSiteSafe(site.name || '', site.url || ''); });
-    card.appendChild(shareBtn);
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const name = shareBtn.dataset.siteName || '';
+      const url = shareBtn.dataset.siteUrl || '';
+      shareSiteSafe(name, url);
+    });
 
-    header.appendChild(a);
+    header.appendChild(titleLink);
+    header.appendChild(shareBtn);
 
     const desc = document.createElement('p');
     desc.className = 'site-desc';
-    desc.textContent = site.desc || '설명이 없습니다.';
 
     const tags = document.createElement('div');
     tags.className = 'link-card-tags';
-
-    // 카테고리 태그
-    const catTag = document.createElement('span');
-    catTag.className = 'tag category-tag';
-    catTag.textContent = getCategoryNameSafe(site.category);
-    tags.appendChild(catTag);
-
-
-    // 연령 태그
-    const ageNames = window.ddakpilmoConfig?.ageNames || {
-      elem: "초등학생",
-      mid: "중학생", 
-      high: "고등학생",
-      adult: "성인"
-    };
-    (site.ages || []).forEach(age => {
-      const t = document.createElement("span");
-      t.className = "tag age-tag";
-      t.textContent = ageNames[age] || age;  // 🔥 한글 이름으로 표시
-      tags.appendChild(t);
-    });
-    
-    if (Array.isArray(site._alsoIn) && site._alsoIn.length > 0) {
-      const also = document.createElement('div');
-      also.className = 'also-in';
-      also.textContent = '또 포함: ';
-      site._alsoIn.forEach((ck, i) => {
-        const b = document.createElement('span');
-        b.className = 'tag also-tag';
-        b.textContent = getCategoryNameSafe(ck);
-        also.appendChild(b);
-      });
-      tags.appendChild(also);
-    }
 
     right.appendChild(header);
     right.appendChild(desc);
@@ -145,10 +124,147 @@
     card.appendChild(left);
     card.appendChild(right);
 
-    const i2 = card.querySelector('img');
-    if (i2 && !i2.loading) i2.loading = 'lazy';
+    entry.card = card;
+    entry.left = left;
+    entry.faviconImg = img;
+    entry.faviconFallback = fallback;
+    entry.titleLink = titleLink;
+    entry.shareBtn = shareBtn;
+    entry.desc = desc;
+    entry.tags = tags;
+    entry.header = header;
 
-    return card;
+    img.addEventListener('error', () => {
+      entry.faviconBroken = true;
+      updateFavicon(entry, entry.lastSite);
+    });
+    img.addEventListener('load', () => {
+      entry.faviconBroken = false;
+      if (entry.faviconImg) {
+        entry.faviconImg.style.display = '';
+      }
+      if (entry.faviconFallback) {
+        entry.faviconFallback.style.display = 'none';
+      }
+    });
+
+    return entry;
+  }
+
+  function updateFavicon(entry, site) {
+    if (!site) return;
+    const name = site.name || '';
+    const url = site.url || '';
+    const fallbackInitial = name ? name.charAt(0).toUpperCase() : '?';
+
+    if (entry.faviconFallback) {
+      entry.faviconFallback.textContent = fallbackInitial;
+    }
+
+    if (entry.faviconBroken) {
+      if (entry.faviconImg) {
+        entry.faviconImg.style.display = 'none';
+      }
+      if (entry.faviconFallback) {
+        entry.faviconFallback.style.display = 'flex';
+      }
+      return;
+    }
+
+    if (!entry.faviconImg) {
+      const img = document.createElement('img');
+      img.className = 'site-favicon';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+      img.addEventListener('error', () => {
+        entry.faviconBroken = true;
+        updateFavicon(entry, entry.lastSite);
+      });
+      img.addEventListener('load', () => {
+        entry.faviconBroken = false;
+        if (entry.faviconFallback) {
+          entry.faviconFallback.style.display = 'none';
+        }
+      });
+      entry.left.insertBefore(img, entry.left.firstChild);
+      entry.faviconImg = img;
+    }
+
+    const faviconUrl = 'https://www.google.com/s2/favicons?sz=64&domain_url=' + encodeURIComponent(url);
+    entry.faviconImg.alt = `${name} favicon`;
+    entry.faviconImg.src = faviconUrl;
+
+    if (entry.faviconFallback) {
+      entry.faviconFallback.style.display = 'none';
+    }
+    if (entry.faviconImg) {
+      entry.faviconImg.style.display = '';
+    }
+  }
+
+  function collectSiteCategories(site){
+    if (!site) return [];
+    const seen = new Set();
+    const add = (value) => {
+      if (!value || seen.has(value)) return;
+      seen.add(value);
+    };
+
+    if (Array.isArray(site._allCategories) && site._allCategories.length > 0){
+      site._allCategories.forEach(add);
+    } else {
+      if (site.category) add(site.category);
+      if (Array.isArray(site._alsoIn)) site._alsoIn.forEach(add);
+    }
+
+    return Array.from(seen);
+  }
+
+  function renderTagsInto(entry, site) {
+    const tagsEl = entry.tags;
+    if (!tagsEl) return;
+    tagsEl.replaceChildren();
+
+    const categoryKeys = collectSiteCategories(site);
+    if (categoryKeys.length > 0){
+      const categoryFragment = document.createDocumentFragment();
+      categoryKeys.forEach(catKey => {
+        const catTag = document.createElement('span');
+        catTag.className = 'tag category-tag';
+        catTag.textContent = getCategoryNameSafe(catKey);
+        categoryFragment.appendChild(catTag);
+      });
+      tagsEl.appendChild(categoryFragment);
+    }
+
+    const ageNames = window.ddakpilmoConfig?.ageNames || {
+      elem: '초등학생',
+      mid: '중학생',
+      high: '고등학생',
+      adult: '성인'
+    };
+
+    (site.ages || []).forEach(age => {
+      const t = document.createElement('span');
+      t.className = 'tag age-tag';
+      t.textContent = ageNames[age] || age;
+      tagsEl.appendChild(t);
+    });
+
+    const shouldRenderAlsoIn = !categoryKeys.length && Array.isArray(site._alsoIn) && site._alsoIn.length > 0;
+    if (shouldRenderAlsoIn) {
+      const also = document.createElement('div');
+      also.className = 'also-in';
+      also.textContent = '또 포함: ';
+      site._alsoIn.forEach(ck => {
+        const b = document.createElement('span');
+        b.className = 'tag also-tag';
+        b.textContent = getCategoryNameSafe(ck);
+        also.appendChild(b);
+      });
+      tagsEl.appendChild(also);
+    }
   }
 
   function ensureGovMarkers(card, site){
@@ -168,14 +284,102 @@
     } catch(e){ console.warn('ensureGovMarkers failed', e); }
   }
 
+  function createSiteCard(site){
+    const key = cardCacheKeyOf(site);
+    let entry = cardCache.get(key);
+    if (!entry) {
+      entry = createCardEntry();
+      cardCache.set(key, entry);
+    }
+
+    entry.lastKey = key;
+    entry.lastSite = site;
+    entry.faviconBroken = false;
+
+    entry.card.dataset.site = site.name || '';
+    entry.card.dataset.siteKey = key;
+
+    if (entry.titleLink) {
+      entry.titleLink.textContent = site.name || '이름 없음';
+      entry.titleLink.href = site.url || '#';
+    }
+
+    if (entry.desc) {
+      entry.desc.textContent = site.desc || '설명이 없습니다.';
+    }
+
+    if (entry.shareBtn) {
+      entry.shareBtn.dataset.siteName = site.name || '';
+      entry.shareBtn.dataset.siteUrl = site.url || '';
+    }
+
+    updateFavicon(entry, site);
+    renderTagsInto(entry, site);
+    ensureGovMarkers(entry.card, site);
+
+    return entry.card;
+  }
+
+  function pruneCardCache(validKeys){
+    if (!validKeys) return;
+    cardCache.forEach((entry, key) => {
+      if (!validKeys.has(key)) {
+        if (entry && entry.card && entry.card.parentNode) {
+          entry.card.parentNode.removeChild(entry.card);
+        }
+        cardCache.delete(key);
+      }
+    });
+  }
+
   function buildCardsFragment(sitesSlice){
     const frag = document.createDocumentFragment();
     for (const site of sitesSlice){
       const card = createSiteCard(site);
-      try { ensureGovMarkers(card, site); } catch(_){}
       frag.appendChild(card);
     }
     return frag;
+  }
+
+  function renderUnifiedSearchResults(sites, query){
+    const section = document.getElementById('searchResultsSection');
+    const content = document.getElementById('searchResultsContent');
+    const summary = document.getElementById('searchResultsSummary');
+    const badge = document.getElementById('searchResultsBadge');
+
+    if (!section || !content){
+      return;
+    }
+
+    if (!sites || sites.length === 0){
+      section.style.display = 'none';
+      if (content) content.innerHTML = '';
+      if (summary) summary.textContent = '검색 결과가 없습니다.';
+      if (badge) badge.textContent = '검색 결과 0개';
+      return;
+    }
+
+    section.style.display = 'block';
+    const frag = buildCardsFragment(sites);
+    content.replaceChildren(frag);
+
+    const categories = new Set();
+    sites.forEach(site => {
+      collectSiteCategories(site).forEach(cat => categories.add(cat));
+    });
+
+    if (summary){
+      const trimmedQuery = (query || '').trim();
+      const queryPrefix = trimmedQuery ? `"${trimmedQuery}" ` : '';
+      const catPart = categories.size ? ` · ${categories.size}개 카테고리에서 발견` : '';
+      summary.textContent = `${queryPrefix}검색 결과 ${sites.length}개${catPart}`;
+    }
+
+    if (badge){
+      badge.textContent = categories.size
+        ? `${categories.size}개 카테고리에서 발견`
+        : '중복 사이트 통합';
+    }
   }
 
   // ========= 카테고리 섹션 =========
@@ -336,74 +540,91 @@
   function renderSitesOptimizedCore(){
     try {
       const filtered = getFilteredSitesSafe();
+      const allSites = Array.isArray(state.sites) ? state.sites : [];
+      const validKeys = new Set(allSites.map(cardCacheKeyOf));
+      pruneCardCache(validKeys);
       const categories = Object.keys(getAllCategoriesSafe());
       const hasResults = filtered.length > 0;
+      const useUnifiedSearch = typeof filterManager.shouldDedupeAcrossCategories === 'function'
+        ? !!filterManager.shouldDedupeAcrossCategories()
+        : false;
 
-      for (const category of categories){
-        const section = document.getElementById(`${category}-section`);
-        const content = document.getElementById(`${category}-content`);
-        const countEl = document.getElementById(`${category}-count`);
-        if (!section || !content) continue;
+      const categoriesContainerEl = document.getElementById('categoriesContainer');
+      const searchResultsSection = document.getElementById('searchResultsSection');
 
-        const list = filtered.filter(s => s.category === category);
-        const totalCount = list.length;
+      if (useUnifiedSearch){
+        if (categoriesContainerEl) categoriesContainerEl.style.display = 'none';
+        renderUnifiedSearchResults(filtered, state.currentSearchQuery || '');
+      } else {
+        if (categoriesContainerEl) categoriesContainerEl.style.display = '';
+        if (searchResultsSection) searchResultsSection.style.display = 'none';
 
-        if (countEl && renderState.prevCountByCategory[category] !== totalCount){
-          countEl.textContent = String(totalCount);
-          renderState.prevCountByCategory[category] = totalCount;
-        }
+        for (const category of categories){
+          const section = document.getElementById(`${category}-section`);
+          const content = document.getElementById(`${category}-content`);
+          const countEl = document.getElementById(`${category}-count`);
+          if (!section || !content) continue;
 
-        if (totalCount === 0){
-          section.style.display = 'none';
-          renderState.prevKeysByCategory[category] = [];
-          const pager = document.getElementById(`${category}-pagination`);
-          if (pager) pager.innerHTML = '';
-          continue;
-        }
+          const list = filtered.filter(s => s.category === category);
+          const totalCount = list.length;
 
-        section.style.display = 'block';
-
-        const cur = state.currentCategoryFilter || 'all';
-        const isAllView = (cur === 'all' || cur === '전체');
-        const isSelectedCategory = (!isAllView && cur === category);
-
-        section.classList.toggle('expanded-category', isSelectedCategory);
-
-        let slice;
-        if (isSelectedCategory){
-          slice = list; // 선택 카테고리는 전체 노출
-        } else {
-          const currentPage = (state.currentPageByCategory && state.currentPageByCategory[category]) || 1;
-          const perPage     = state.ITEMS_PER_PAGE || 20;
-          const startIdx    = (currentPage - 1) * perPage;
-          const endIdx      = startIdx + perPage;
-          slice = list.slice(startIdx, endIdx);
-        }
-
-        const visibleKeys = slice.map(siteKeyOf);
-        const prevKeys = renderState.prevKeysByCategory[category] || [];
-
-        if (!shallowEqualArray(prevKeys, visibleKeys)){
-          const frag = buildCardsFragment(slice);
-          content.replaceChildren(frag);
-          const pager = document.getElementById(`${category}-pagination`);
-          if (pager){
-            if (isSelectedCategory){
-              pager.innerHTML = '';
-              pager.style.display = 'none';
-            } else {
-              pager.style.display = '';
-              renderPagination(category, totalCount);
-            }
+          if (countEl && renderState.prevCountByCategory[category] !== totalCount){
+            countEl.textContent = String(totalCount);
+            renderState.prevCountByCategory[category] = totalCount;
           }
-          renderState.prevKeysByCategory[category] = visibleKeys;
+
+          if (totalCount === 0){
+            section.style.display = 'none';
+            renderState.prevKeysByCategory[category] = [];
+            const pager = document.getElementById(`${category}-pagination`);
+            if (pager) pager.innerHTML = '';
+            continue;
+          }
+
+          section.style.display = 'block';
+
+          const cur = state.currentCategoryFilter || 'all';
+          const isAllView = (cur === 'all' || cur === '전체');
+          const isSelectedCategory = (!isAllView && cur === category);
+
+          section.classList.toggle('expanded-category', isSelectedCategory);
+
+          let slice;
+          if (isSelectedCategory){
+            slice = list; // 선택 카테고리는 전체 노출
+          } else {
+            const currentPage = (state.currentPageByCategory && state.currentPageByCategory[category]) || 1;
+            const perPage     = state.ITEMS_PER_PAGE || 20;
+            const startIdx    = (currentPage - 1) * perPage;
+            const endIdx      = startIdx + perPage;
+            slice = list.slice(startIdx, endIdx);
+          }
+
+          const visibleKeys = slice.map(cardCacheKeyOf);
+          const prevKeys = renderState.prevKeysByCategory[category] || [];
+
+          if (!shallowEqualArray(prevKeys, visibleKeys)){
+            const frag = buildCardsFragment(slice);
+            content.replaceChildren(frag);
+            const pager = document.getElementById(`${category}-pagination`);
+            if (pager){
+              if (isSelectedCategory){
+                pager.innerHTML = '';
+                pager.style.display = 'none';
+              } else {
+                pager.style.display = '';
+                renderPagination(category, totalCount);
+              }
+            }
+            renderState.prevKeysByCategory[category] = visibleKeys;
+          }
         }
+
+        updateResultColumnsByVisibleCategories();
       }
 
       const noResults = document.getElementById('noResults');
       if (noResults) noResults.style.display = hasResults ? 'none' : 'block';
-
-      updateResultColumnsByVisibleCategories();
 
       const total = (state.sites && state.sites.length) || 0;
       const filteredLen = filtered.length;
@@ -427,8 +648,10 @@
 
       try {
         const q = (state.currentSearchQuery || '').trim();
-        const scope = document.getElementById('main') || document;
-        if (q) HL.apply(q, scope); else HL.clear(scope);
+        const highlightScope = useUnifiedSearch
+          ? (document.getElementById('searchResultsSection') || document)
+          : (document.getElementById('categoriesContainer') || document);
+        if (q) HL.apply(q, highlightScope); else HL.clear(highlightScope);
       } catch(e){ console.warn('highlight skipped', e); }
 
     } catch(err){
