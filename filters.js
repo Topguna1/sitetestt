@@ -14,9 +14,39 @@ function getCategoryName(key) {
   return c ? c.name : key;
 }
 
-function getCategoryIcon(key) { 
-  const c = getAllCategories()[key]; 
-  return c ? c.icon : "📁"; 
+function getCategoryIcon(key) {
+  const c = getAllCategories()[key];
+  return c ? c.icon : "📁";
+}
+
+function normalizeSiteKey(site) {
+  if (!site) return "";
+  const raw = (site.url || site.name || "").toString().trim();
+  if (!raw) return "";
+  return raw
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/\/+$/, "");
+}
+
+function shouldDedupeAcrossCategories() {
+  const query = (window.state?.currentSearchQuery || "").trim();
+  if (!query) return false;
+  const category = window.state?.currentCategoryFilter || "all";
+  return category === "all" || category === "전체";
+}
+
+function dedupeSites(sites) {
+  const seen = new Set();
+  const result = [];
+  for (const site of sites) {
+    const key = normalizeSiteKey(site);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(site);
+  }
+  return result;
 }
 
 // 필터링 실행
@@ -24,9 +54,9 @@ function getFilteredSites() {
   const rawQ = window.state.currentSearchQuery || "";
   const q = rawQ.trim().toLowerCase();
 
-  return window.state.sites.filter(site => {
+  let filtered = window.state.sites.filter(site => {
     // 연령대 필터
-    if (window.state.currentAgeFilter !== "all" && 
+    if (window.state.currentAgeFilter !== "all" &&
         !site.ages.includes(window.state.currentAgeFilter)) {
       return false;
     }
@@ -77,6 +107,12 @@ function getFilteredSites() {
       return false;
     });
   });
+
+  if (shouldDedupeAcrossCategories()) {
+    filtered = dedupeSites(filtered);
+  }
+
+  return filtered;
 }
 
 // 캐싱된 필터링 (메모리 관리자 사용)
