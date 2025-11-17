@@ -1,5 +1,30 @@
 // ======================= 경량 검색 엔진 =======================
 
+function normalizeSiteKey(site) {
+  if (!site) return "";
+  const urlRaw = (site.url || "").toString().trim();
+  if (urlRaw) {
+    try {
+      const parsed = new URL(urlRaw);
+      const host = parsed.hostname.replace(/^www\./i, "");
+      const path = parsed.pathname.replace(/\/+$/, "");
+      return `${host}${path}`.toLowerCase();
+    } catch (err) {
+      // URL 파싱 실패 시 아래 정규화로 폴백
+    }
+    return urlRaw
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/[#?].*$/, "")
+      .replace(/\/+$/, "");
+  }
+
+  const fallback = (site.name || "").toString().trim();
+  if (!fallback) return "";
+  return fallback.toLowerCase().replace(/\s+/g, "-");
+}
+
 class LightweightSearch {
   constructor(sites) {
     this.rows = [];
@@ -78,13 +103,14 @@ class LightweightSearch {
     const rows = this.rows;
     const out = this.tmp;
     out.length = 0;
+    const capacity = Math.max(limit * 3, limit + 5);
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const sc = this.scoreRow(q, row);
       if (sc <= 0) continue;
 
-      if (out.length < limit) {
+      if (out.length < capacity) {
         out.push({ sc, ref: row.ref });
 
         let j = out.length - 1;
@@ -107,7 +133,18 @@ class LightweightSearch {
       }
     }
 
-    return out.map(x => x.ref);
+    const seen = new Set();
+    const deduped = [];
+    for (let i = 0; i < out.length && deduped.length < limit; i++) {
+      const site = out[i]?.ref;
+      if (!site) continue;
+      const key = normalizeSiteKey(site);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      deduped.push(site);
+    }
+
+    return deduped;
   }
 
   quickSearch(query) {
