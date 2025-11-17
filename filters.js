@@ -38,14 +38,42 @@ function shouldDedupeAcrossCategories() {
 }
 
 function dedupeSites(sites) {
-  const seen = new Set();
+  const aggregated = new Map();
   const result = [];
+
   for (const site of sites) {
     const key = normalizeSiteKey(site);
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    result.push(site);
+    if (!key) continue;
+
+    const category = site.category;
+    const existing = aggregated.get(key);
+
+    if (existing) {
+      const { target, categories } = existing;
+      if (category && !categories.has(category)) {
+        categories.add(category);
+        target._allCategories = Array.from(categories);
+        target._alsoIn = target._allCategories.slice(1);
+      }
+
+      if (site.desc) {
+        if (!target.desc || site.desc.length > target.desc.length) {
+          target.desc = site.desc;
+        }
+      }
+      continue;
+    }
+
+    const clone = { ...site };
+    const categories = new Set();
+    if (category) categories.add(category);
+    clone._allCategories = Array.from(categories);
+    clone._alsoIn = clone._allCategories.slice(1);
+
+    aggregated.set(key, { target: clone, categories });
+    result.push(clone);
   }
+
   return result;
 }
 
@@ -183,5 +211,6 @@ window.filterManager = {
   reset: resetFilters,
   getCategoryName,
   getCategoryIcon,
-  getAllCategories
+  getAllCategories,
+  shouldDedupeAcrossCategories
 };

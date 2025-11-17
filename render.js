@@ -44,6 +44,12 @@
     return `${base}::${category}`;
   }
 
+  function cardCacheKeyOf(site){
+    const base = siteKeyOf(site);
+    const category = (site && site.category) || 'uncategorized';
+    return `${base}::${category}`;
+  }
+
   // ========= 전역 의존(있으면 사용, 없으면 안전 폴백) =========
   const filterManager = (typeof window !== 'undefined' && window.filterManager) || {};
   const getAllCategoriesSafe = (typeof filterManager.getAllCategories === 'function')
@@ -221,15 +227,40 @@
     }
   }
 
+  function collectSiteCategories(site){
+    if (!site) return [];
+    const seen = new Set();
+    const add = (value) => {
+      if (!value || seen.has(value)) return;
+      seen.add(value);
+    };
+
+    if (Array.isArray(site._allCategories) && site._allCategories.length > 0){
+      site._allCategories.forEach(add);
+    } else {
+      if (site.category) add(site.category);
+      if (Array.isArray(site._alsoIn)) site._alsoIn.forEach(add);
+    }
+
+    return Array.from(seen);
+  }
+
   function renderTagsInto(entry, site) {
     const tagsEl = entry.tags;
     if (!tagsEl) return;
     tagsEl.replaceChildren();
 
-    const catTag = document.createElement('span');
-    catTag.className = 'tag category-tag';
-    catTag.textContent = getCategoryNameSafe(site.category);
-    tagsEl.appendChild(catTag);
+    const categoryKeys = collectSiteCategories(site);
+    if (categoryKeys.length > 0){
+      const categoryFragment = document.createDocumentFragment();
+      categoryKeys.forEach(catKey => {
+        const catTag = document.createElement('span');
+        catTag.className = 'tag category-tag';
+        catTag.textContent = getCategoryNameSafe(catKey);
+        categoryFragment.appendChild(catTag);
+      });
+      tagsEl.appendChild(categoryFragment);
+    }
 
     const ageNames = window.ddakpilmoConfig?.ageNames || {
       elem: '초등학생',
@@ -245,7 +276,8 @@
       tagsEl.appendChild(t);
     });
 
-    if (Array.isArray(site._alsoIn) && site._alsoIn.length > 0) {
+    const shouldRenderAlsoIn = !categoryKeys.length && Array.isArray(site._alsoIn) && site._alsoIn.length > 0;
+    if (shouldRenderAlsoIn) {
       const also = document.createElement('div');
       also.className = 'also-in';
       also.textContent = '또 포함: ';
@@ -331,6 +363,47 @@
       frag.appendChild(card);
     }
     return frag;
+  }
+
+  function renderUnifiedSearchResults(sites, query){
+    const section = document.getElementById('searchResultsSection');
+    const content = document.getElementById('searchResultsContent');
+    const summary = document.getElementById('searchResultsSummary');
+    const badge = document.getElementById('searchResultsBadge');
+
+    if (!section || !content){
+      return;
+    }
+
+    if (!sites || sites.length === 0){
+      section.style.display = 'none';
+      if (content) content.innerHTML = '';
+      if (summary) summary.textContent = '검색 결과가 없습니다.';
+      if (badge) badge.textContent = '검색 결과 0개';
+      return;
+    }
+
+    section.style.display = 'block';
+    const frag = buildCardsFragment(sites);
+    content.replaceChildren(frag);
+
+    const categories = new Set();
+    sites.forEach(site => {
+      collectSiteCategories(site).forEach(cat => categories.add(cat));
+    });
+
+    if (summary){
+      const trimmedQuery = (query || '').trim();
+      const queryPrefix = trimmedQuery ? `"${trimmedQuery}" ` : '';
+      const catPart = categories.size ? ` · ${categories.size}개 카테고리에서 발견` : '';
+      summary.textContent = `${queryPrefix}검색 결과 ${sites.length}개${catPart}`;
+    }
+
+    if (badge){
+      badge.textContent = categories.size
+        ? `${categories.size}개 카테고리에서 발견`
+        : '중복 사이트 통합';
+    }
   }
 
   // ========= 카테고리 섹션 =========
@@ -496,72 +569,86 @@
       pruneCardCache(validKeys);
       const categories = Object.keys(getAllCategoriesSafe());
       const hasResults = filtered.length > 0;
+      const useUnifiedSearch = typeof filterManager.shouldDedupeAcrossCategories === 'function'
+        ? !!filterManager.shouldDedupeAcrossCategories()
+        : false;
 
-      for (const category of categories){
-        const section = document.getElementById(`${category}-section`);
-        const content = document.getElementById(`${category}-content`);
-        const countEl = document.getElementById(`${category}-count`);
-        if (!section || !content) continue;
+      const categoriesContainerEl = document.getElementById('categoriesContainer');
+      const searchResultsSection = document.getElementById('searchResultsSection');
 
-        const list = filtered.filter(s => s.category === category);
-        const totalCount = list.length;
+      if (useUnifiedSearch){
+        if (categoriesContainerEl) categoriesContainerEl.style.display = 'none';
+        renderUnifiedSearchResults(filtered, state.currentSearchQuery || '');
+      } else {
+        if (categoriesContainerEl) categoriesContainerEl.style.display = '';
+        if (searchResultsSection) searchResultsSection.style.display = 'none';
 
-        if (countEl && renderState.prevCountByCategory[category] !== totalCount){
-          countEl.textContent = String(totalCount);
-          renderState.prevCountByCategory[category] = totalCount;
-        }
+        for (const category of categories){
+          const section = document.getElementById(`${category}-section`);
+          const content = document.getElementById(`${category}-content`);
+          const countEl = document.getElementById(`${category}-count`);
+          if (!section || !content) continue;
 
-        if (totalCount === 0){
-          section.style.display = 'none';
-          renderState.prevKeysByCategory[category] = [];
-          const pager = document.getElementById(`${category}-pagination`);
-          if (pager) pager.innerHTML = '';
-          continue;
-        }
+          const list = filtered.filter(s => s.category === category);
+          const totalCount = list.length;
 
-        section.style.display = 'block';
-
-        const cur = state.currentCategoryFilter || 'all';
-        const isAllView = (cur === 'all' || cur === '전체');
-        const isSelectedCategory = (!isAllView && cur === category);
-
-        section.classList.toggle('expanded-category', isSelectedCategory);
-
-        let slice;
-        if (isSelectedCategory){
-          slice = list; // 선택 카테고리는 전체 노출
-        } else {
-          const currentPage = (state.currentPageByCategory && state.currentPageByCategory[category]) || 1;
-          const perPage     = state.ITEMS_PER_PAGE || 20;
-          const startIdx    = (currentPage - 1) * perPage;
-          const endIdx      = startIdx + perPage;
-          slice = list.slice(startIdx, endIdx);
-        }
-
-        const visibleKeys = slice.map(cardCacheKeyOf);
-        const prevKeys = renderState.prevKeysByCategory[category] || [];
-
-        if (!shallowEqualArray(prevKeys, visibleKeys)){
-          const frag = buildCardsFragment(slice);
-          content.replaceChildren(frag);
-          const pager = document.getElementById(`${category}-pagination`);
-          if (pager){
-            if (isSelectedCategory){
-              pager.innerHTML = '';
-              pager.style.display = 'none';
-            } else {
-              pager.style.display = '';
-              renderPagination(category, totalCount);
-            }
+          if (countEl && renderState.prevCountByCategory[category] !== totalCount){
+            countEl.textContent = String(totalCount);
+            renderState.prevCountByCategory[category] = totalCount;
           }
-          renderState.prevKeysByCategory[category] = visibleKeys;
+
+          if (totalCount === 0){
+            section.style.display = 'none';
+            renderState.prevKeysByCategory[category] = [];
+            const pager = document.getElementById(`${category}-pagination`);
+            if (pager) pager.innerHTML = '';
+            continue;
+          }
+
+          section.style.display = 'block';
+
+          const cur = state.currentCategoryFilter || 'all';
+          const isAllView = (cur === 'all' || cur === '전체');
+          const isSelectedCategory = (!isAllView && cur === category);
+
+          section.classList.toggle('expanded-category', isSelectedCategory);
+
+          let slice;
+          if (isSelectedCategory){
+            slice = list; // 선택 카테고리는 전체 노출
+          } else {
+            const currentPage = (state.currentPageByCategory && state.currentPageByCategory[category]) || 1;
+            const perPage     = state.ITEMS_PER_PAGE || 20;
+            const startIdx    = (currentPage - 1) * perPage;
+            const endIdx      = startIdx + perPage;
+            slice = list.slice(startIdx, endIdx);
+          }
+
+          const visibleKeys = slice.map(cardCacheKeyOf);
+          const prevKeys = renderState.prevKeysByCategory[category] || [];
+
+          if (!shallowEqualArray(prevKeys, visibleKeys)){
+            const frag = buildCardsFragment(slice);
+            content.replaceChildren(frag);
+            const pager = document.getElementById(`${category}-pagination`);
+            if (pager){
+              if (isSelectedCategory){
+                pager.innerHTML = '';
+                pager.style.display = 'none';
+              } else {
+                pager.style.display = '';
+                renderPagination(category, totalCount);
+              }
+            }
+            renderState.prevKeysByCategory[category] = visibleKeys;
+          }
         }
+
+        updateResultColumnsByVisibleCategories();
       }
 
       const noResults = document.getElementById('noResults');
       if (noResults) noResults.style.display = hasResults ? 'none' : 'block';
-
-      updateResultColumnsByVisibleCategories();
 
       const total = (state.sites && state.sites.length) || 0;
       const filteredLen = filtered.length;
@@ -585,8 +672,10 @@
 
       try {
         const q = (state.currentSearchQuery || '').trim();
-        const scope = document.getElementById('main') || document;
-        if (q) HL.apply(q, scope); else HL.clear(scope);
+        const highlightScope = useUnifiedSearch
+          ? (document.getElementById('searchResultsSection') || document)
+          : (document.getElementById('categoriesContainer') || document);
+        if (q) HL.apply(q, highlightScope); else HL.clear(highlightScope);
       } catch(e){ console.warn('highlight skipped', e); }
 
     } catch(err){
