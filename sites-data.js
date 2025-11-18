@@ -231,3 +231,7 @@ for (const s of initialSites) {
     s.isgov = s.isGov;
   }
 }
+
+if (typeof window !== 'undefined') {
+  window.initialSites = Array.isArray(window.initialSites) ? window.initialSites : initialSites;
+}

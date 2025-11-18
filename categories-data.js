@@ -13,3 +13,7 @@ const defaultCategories = {
   art: {name:"창의/예술", icon:"🎨"},
   explore: {name:"체험/탐구", icon:"🔬"}
 };
+
+if (typeof window !== 'undefined') {
+  window.defaultCategories = window.defaultCategories || defaultCategories;
+}
