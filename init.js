@@ -253,9 +253,15 @@ function handleInitializationFailure(error) {
   }
 }
 
-// DOMContentLoaded 이벤트
-document.addEventListener('DOMContentLoaded', () => {
-  // 단계적 러너로 실행
+let initRegistered = false;
+
+function startInitRunner() {
+  if (initRegistered) {
+    return;
+  }
+
+  initRegistered = true;
+
   window.initRunner.add('legacy:init', () => {
     try {
       init();
@@ -267,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.initRunner.add('ui:highlight', () => {
     try {
-      const q = (window.state?.currentSearchQuery || 
+      const q = (window.state?.currentSearchQuery ||
                  document.getElementById('searchInput')?.value || '').trim();
       if (q && window.ddakHighlight) {
         const scope = document.getElementById('categoriesContainer') || document;
@@ -281,6 +287,29 @@ document.addEventListener('DOMContentLoaded', () => {
   window.initRunner.run().then(rep => {
     console.log('[init] report:', rep, window.initRunner.status());
   });
+}
+
+// DOMContentLoaded 이벤트
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = window.dataLoader;
+
+  if (!loader || typeof loader.load !== 'function') {
+    const error = new Error('데이터 로더를 찾을 수 없습니다.');
+    console.error(error);
+    handleInitializationFailure(error);
+    showToast('⚠️ 필수 데이터를 불러오지 못했습니다', 'error', 5000);
+    return;
+  }
+
+  loader.load()
+    .then(() => {
+      startInitRunner();
+    })
+    .catch(error => {
+      console.error('데이터 로드 실패:', error);
+      handleInitializationFailure(error);
+      showToast('⚠️ 데이터를 불러오는 중 문제가 발생했습니다', 'error', 5000);
+    });
 });
 
 // 윈도우 이벤트

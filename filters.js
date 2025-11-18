@@ -4,18 +4,93 @@
  */
 
 // 데이터 접근 함수
-function getAllCategories() { 
-  return typeof defaultCategories !== 'undefined' ? defaultCategories : {}; 
+function getAllCategories() {
+  const categories = window.state?.categories;
+  return categories && typeof categories === 'object' ? categories : {};
 }
 
-function getCategoryName(key) { 
-  const c = getAllCategories()[key]; 
-  return c ? c.name : key; 
+function getCategoryName(key) {
+  const c = getAllCategories()[key];
+  return c ? c.name : key;
 }
 
-function getCategoryIcon(key) { 
-  const c = getAllCategories()[key]; 
-  return c ? c.icon : "📁"; 
+function getCategoryIcon(key) {
+  const c = getAllCategories()[key];
+  return c ? c.icon : "📁";
+}
+
+function normalizeSiteKey(site) {
+  if (!site) return "";
+  const urlRaw = (site.url || "").toString().trim();
+  if (urlRaw) {
+    try {
+      const parsed = new URL(urlRaw);
+      const host = parsed.hostname.replace(/^www\./i, "");
+      const path = parsed.pathname.replace(/\/+$/, "");
+      return `${host}${path}`.toLowerCase();
+    } catch (err) {
+      // URL 파싱이 실패하면 아래 이름 기반 정규화로 폴백
+    }
+    return urlRaw
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/[#?].*$/, "")
+      .replace(/\/+$/, "");
+  }
+
+  const fallback = (site.name || "").toString().trim();
+  if (!fallback) return "";
+  return fallback
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+}
+
+function shouldDedupeAcrossCategories() {
+  const query = (window.state?.currentSearchQuery || "").trim();
+  if (!query) return false;
+  const category = window.state?.currentCategoryFilter || "all";
+  return category === "all" || category === "전체";
+}
+
+function dedupeSites(sites) {
+  const aggregated = new Map();
+  const result = [];
+
+  for (const site of sites) {
+    const key = normalizeSiteKey(site);
+    if (!key) continue;
+
+    const category = site.category;
+    const existing = aggregated.get(key);
+
+    if (existing) {
+      const { target, categories } = existing;
+      if (category && !categories.has(category)) {
+        categories.add(category);
+        target._allCategories = Array.from(categories);
+        target._alsoIn = target._allCategories.slice(1);
+      }
+
+      if (site.desc) {
+        if (!target.desc || site.desc.length > target.desc.length) {
+          target.desc = site.desc;
+        }
+      }
+      continue;
+    }
+
+    const clone = { ...site };
+    const categories = new Set();
+    if (category) categories.add(category);
+    clone._allCategories = Array.from(categories);
+    clone._alsoIn = clone._allCategories.slice(1);
+
+    aggregated.set(key, { target: clone, categories });
+    result.push(clone);
+  }
+
+  return result;
 }
 
 // 필터링 실행
@@ -23,9 +98,9 @@ function getFilteredSites() {
   const rawQ = window.state.currentSearchQuery || "";
   const q = rawQ.trim().toLowerCase();
 
-  return window.state.sites.filter(site => {
+  let filtered = window.state.sites.filter(site => {
     // 연령대 필터
-    if (window.state.currentAgeFilter !== "all" && 
+    if (window.state.currentAgeFilter !== "all" &&
         !site.ages.includes(window.state.currentAgeFilter)) {
       return false;
     }
@@ -73,6 +148,14 @@ function getFilteredSites() {
       return false;
     });
   });
+
+  return filtered;
+}
+
+function getDedupedUnifiedResults(baseList) {
+  if (!shouldDedupeAcrossCategories()) return [];
+  const source = Array.isArray(baseList) ? baseList : getFilteredSites();
+  return dedupeSites(source);
 }
 
 // 캐싱된 필터링 (메모리 관리자 사용)
@@ -143,5 +226,7 @@ window.filterManager = {
   reset: resetFilters,
   getCategoryName,
   getCategoryIcon,
-  getAllCategories
+  getAllCategories,
+  shouldDedupeAcrossCategories,
+  getDedupedUnifiedResults
 };

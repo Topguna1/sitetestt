@@ -666,7 +666,7 @@
     constructor() {
       this.eventManager = new EventManager();
       this.timerManager = new TimerManager();
-      this.cacheManager = new CacheManager();
+      this.cacheManager = new CacheManager(30, 5 * 60 * 1000);
       this.domRefManager = new DOMReferenceManager();
       this.memoryMonitor = new MemoryMonitor();
       this.logger = new Logger('MemoryManager');

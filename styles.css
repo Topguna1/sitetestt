@@ -331,11 +331,21 @@ body.dark .autocomplete-item.active {
 }
 
 .tab-btn:hover,
-.tab-btn.active { 
+.tab-btn.active {
   background: var(--gradient-main-2);
-  color: white; 
+  color: white;
   transform: translateY(-3px);
   box-shadow: var(--shadow-primary);
+}
+
+.tab-btn:focus-visible,
+.filter-btn:focus-visible,
+.reset-btn:focus-visible,
+.view-all-btn:focus-visible,
+.dark-toggle:focus-visible,
+.share-btn:focus-visible {
+  outline: 3px solid #ffaf7b;
+  outline-offset: 3px;
 }
 
 /* ==================== 다크 모드 토글 ==================== */
@@ -482,8 +492,65 @@ body.dark .stats {
   transform: translateY(-3px);
 }
 
+/* ==================== 통합 검색 결과 ==================== */
+.search-results {
+  margin: var(--spacing-2xl);
+  margin-top: var(--spacing-3xl);
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-2xl);
+  background: rgba(255,255,255,0.92);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(102,126,234,0.15);
+  display: none;
+}
+
+body.dark .search-results {
+  background: rgba(35,35,55,0.95);
+  border-color: rgba(255,255,255,0.08);
+}
+
+.search-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+}
+
+.search-results-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.search-results-header p {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.search-results-badge {
+  background: var(--gradient-secondary);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.search-results-note {
+  margin: 0 0 var(--spacing-lg);
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+}
+
+.search-results-content .link-card {
+  margin: var(--spacing-lg) 0;
+}
+
 /* ==================== 카테고리 섹션 ==================== */
-.categories-container { 
+.categories-container {
   padding: var(--spacing-2xl);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
