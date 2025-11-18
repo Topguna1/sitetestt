@@ -127,11 +127,37 @@
 // 메인 초기화 함수
 function init() {
   console.log("🌟 딱필모 초기화 시작...");
-  
+
   try {
     // 데이터 확인
     if (typeof initialSites === 'undefined' || !Array.isArray(initialSites)) {
       throw new Error("initialSites 데이터를 찾을 수 없습니다");
+    }
+
+    const ageNames = window.ddakpilmoConfig?.ageNames || {};
+    const subjectNames = window.ddakpilmoConfig?.subjectNames || {};
+
+    function buildSearchBlob(site) {
+      const categoryName = typeof getCategoryName === 'function'
+        ? getCategoryName(site.category)
+        : (site.category || '');
+
+      const ageLabels = Array.isArray(site.ages)
+        ? site.ages.map(a => ageNames[a] || a).join(' ')
+        : '';
+      const subjectLabels = Array.isArray(site.subjects)
+        ? site.subjects.map(sub => subjectNames[sub] || sub).join(' ')
+        : '';
+
+      return [
+        site.name || '',
+        site.desc || '',
+        categoryName,
+        ageLabels,
+        subjectLabels,
+        site.chosung || '',
+        site.url || ''
+      ].join(' ').toLowerCase();
     }
 
     // 사이트 데이터 처리
@@ -139,7 +165,7 @@ function init() {
       try {
         const url = site.url || "";
         let isGovAuto = false;
-        
+
         try {
           const host = new URL(url).hostname || "";
           isGovAuto = /(^|\.)gov\.kr$/i.test(host) || /(^|\.)[a-z0-9-]+\.go\.kr$/i.test(host);
@@ -147,14 +173,16 @@ function init() {
           isGovAuto = /(\.go\.kr|gov\.kr)(\/|$)/i.test(url);
         }
 
-        return {
+        const enriched = {
           ...site,
           isGov: typeof site.isGov === "boolean" ? site.isGov : isGovAuto,
           chosung: getChosung(site.name) + " " + getChosung(site.desc || "")
         };
+        enriched.searchBlob = buildSearchBlob(enriched);
+        return enriched;
       } catch (error) {
         console.warn('사이트 데이터 처리 오류:', site, error);
-        return {
+        const fallback = {
           name: site.name || "알 수 없는 사이트",
           url: site.url || "#",
           desc: site.desc || "설명 없음",
@@ -164,6 +192,8 @@ function init() {
           isGov: false,
           chosung: getChosung(site.name || "") + " " + getChosung(site.desc || "")
         };
+        fallback.searchBlob = buildSearchBlob(fallback);
+        return fallback;
       }
     });
     
