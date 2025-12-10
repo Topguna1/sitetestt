@@ -132,6 +132,10 @@ function init() {
     // 데이터 확인
     const siteSource = getSiteSource();
     const sourceSites = siteSource.sites;
+  try {
+    // 데이터 확인
+    const siteSource = getSiteSource();
+    const sourceSites = siteSource.sites;
 
     const ageNames = window.ddakpilmoConfig?.ageNames || {};
     const subjectNames = window.ddakpilmoConfig?.subjectNames || {};
@@ -159,6 +163,8 @@ function init() {
       ].join(' ').toLowerCase();
     }
 
+    // 사이트 데이터 처리
+    window.state.sites = sourceSites.map(site => {
     // 사이트 데이터 처리
     window.state.sites = sourceSites.map(site => {
       try {
@@ -197,6 +203,7 @@ function init() {
     });
     
     console.log(`✅ ${window.state.sites.length}개 사이트 로드 완료 (source: ${siteSource.source})`);
+    console.log(`✅ ${window.state.sites.length}개 사이트 로드 완료 (source: ${siteSource.source})`);
 
     // 초기화 단계
     const initSteps = [
@@ -232,6 +239,29 @@ function init() {
     console.error("❌ 초기화 중 심각한 오류:", error);
     handleInitializationFailure(error);
   }
+}
+
+function getSiteSource() {
+  const sources = [
+    { source: 'initialSites', sites: typeof initialSites !== 'undefined' ? initialSites : undefined },
+    { source: 'dataLoader.sites', sites: window.dataLoader?.sites }
+  ];
+
+  for (const candidate of sources) {
+    if (Array.isArray(candidate.sites) && candidate.sites.length > 0) {
+      return candidate;
+    }
+  }
+
+  const details = sources
+    .map(entry => {
+      if (!entry.sites) return `${entry.source}:missing`;
+      if (!Array.isArray(entry.sites)) return `${entry.source}:not-array`;
+      return `${entry.source}:empty`;
+    })
+    .join(', ');
+
+  throw new Error(`사이트 데이터를 찾을 수 없습니다 (${details})`);
 }
 
 function getSiteSource() {
