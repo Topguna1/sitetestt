@@ -99,6 +99,22 @@ function updateSearchInputValue(input, value, cursor) {
   }
 }
 
+function updateSearchInputValue(input, value, cursor) {
+  if (!input) return;
+
+  const start = cursor?.start ?? input.selectionStart;
+  const end = cursor?.end ?? input.selectionEnd;
+
+  input.value = value;
+
+  if (typeof start === 'number' && typeof end === 'number' && typeof input.setSelectionRange === 'function') {
+    const length = input.value.length;
+    const safeStart = Math.min(Math.max(start, 0), length);
+    const safeEnd = Math.min(Math.max(end, 0), length);
+    input.setSelectionRange(safeStart, safeEnd);
+  }
+}
+
 // 이벤트 리스너 설정
 function setupEventListeners() {
   console.log("🔧 이벤트 리스너 설정 시작...");
@@ -162,8 +178,7 @@ function setupEventListeners() {
           e.preventDefault();
           e.stopPropagation();
 
-          const cursor = { start: searchInput.selectionStart, end: searchInput.selectionEnd };
-          updateSearchInputValue(searchInput, site.name, cursor);
+          updateSearchInputValue(searchInput, site.name);
           window.state.currentSearchQuery = site.name;
           window.state.currentPageByCategory = {};
           autocompleteList.innerHTML = "";
@@ -197,16 +212,14 @@ function setupEventListeners() {
       items[currentFocus].scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
 
       const val = getAutocompleteTitle(items[currentFocus]);
-      const cursor = { start: this.selectionStart, end: this.selectionEnd };
-      updateSearchInputValue(this, val, cursor);
+      updateSearchInputValue(this, val);
       debouncedSearch(val);
 
     } else if (e.key === "Enter") {
       if (hasItems && currentFocus > -1 && items[currentFocus]) {
         e.preventDefault();
         const val = getAutocompleteTitle(items[currentFocus]);
-        const cursor = { start: this.selectionStart, end: this.selectionEnd };
-        updateSearchInputValue(this, val, cursor);
+        updateSearchInputValue(this, val);
         debouncedSearch(val);
         autocompleteList.innerHTML = "";
         currentFocus = -1;

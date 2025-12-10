@@ -26,36 +26,6 @@
     return `${base}::${category}`;
   }
 
-  function cardCacheKeyOf(site){
-    const base = siteKeyOf(site);
-    const category = (site && site.category) || 'uncategorized';
-    return `${base}::${category}`;
-  }
-
-  function cardCacheKeyOf(site){
-    const base = siteKeyOf(site);
-    const category = (site && site.category) || 'uncategorized';
-    return `${base}::${category}`;
-  }
-
-  function cardCacheKeyOf(site){
-    const base = siteKeyOf(site);
-    const category = (site && site.category) || 'uncategorized';
-    return `${base}::${category}`;
-  }
-
-  function cardCacheKeyOf(site){
-    const base = siteKeyOf(site);
-    const category = (site && site.category) || 'uncategorized';
-    return `${base}::${category}`;
-  }
-
-  function cardCacheKeyOf(site){
-    const base = siteKeyOf(site);
-    const category = (site && site.category) || 'uncategorized';
-    return `${base}::${category}`;
-  }
-
   // ========= 전역 의존(있으면 사용, 없으면 안전 폴백) =========
   const filterManager = (typeof window !== 'undefined' && window.filterManager) || {};
   const getAllCategoriesSafe = (typeof filterManager.getAllCategories === 'function')
@@ -369,47 +339,6 @@
       frag.appendChild(card);
     }
     return frag;
-  }
-
-  function renderUnifiedSearchResults(sites, query){
-    const section = document.getElementById('searchResultsSection');
-    const content = document.getElementById('searchResultsContent');
-    const summary = document.getElementById('searchResultsSummary');
-    const badge = document.getElementById('searchResultsBadge');
-
-    if (!section || !content){
-      return;
-    }
-
-    if (!sites || sites.length === 0){
-      section.style.display = 'none';
-      if (content) content.innerHTML = '';
-      if (summary) summary.textContent = '검색 결과가 없습니다.';
-      if (badge) badge.textContent = '검색 결과 0개';
-      return;
-    }
-
-    section.style.display = 'block';
-    const frag = buildCardsFragment(sites);
-    content.replaceChildren(frag);
-
-    const categories = new Set();
-    sites.forEach(site => {
-      collectSiteCategories(site).forEach(cat => categories.add(cat));
-    });
-
-    if (summary){
-      const trimmedQuery = (query || '').trim();
-      const queryPrefix = trimmedQuery ? `"${trimmedQuery}" ` : '';
-      const catPart = categories.size ? ` · ${categories.size}개 카테고리에서 발견` : '';
-      summary.textContent = `${queryPrefix}검색 결과 ${sites.length}개${catPart}`;
-    }
-
-    if (badge){
-      badge.textContent = categories.size
-        ? `${categories.size}개 카테고리에서 발견`
-        : '중복 사이트 통합';
-    }
   }
 
   function renderUnifiedSearchResults(sites, query){
