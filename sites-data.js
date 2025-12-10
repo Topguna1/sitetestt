@@ -226,8 +226,6 @@ const initialSites = [
   {name:"국립생태원", url:"https://www.nie.re.kr/", desc:"생태 체험 학습 자료", category:"explore", ages:["elem","mid","high"], subjects:["science"], isGov: true},
   {name:"국립해양생물자원관", url:"https://www.mabik.re.kr/", desc:"해양 생물 탐구 및 자료 제공", category:"explore", ages:["elem","mid","high"], subjects:["science"], isGov: true}
 ];
-for (const s of initialSites) {
-  if (typeof s.isGov === 'boolean' && s.isgov == null) {
-    s.isgov = s.isGov;
-  }
+if (typeof window !== 'undefined') {
+  window.initialSites = Array.isArray(window.initialSites) ? window.initialSites : initialSites;
 }

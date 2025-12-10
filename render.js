@@ -25,7 +25,7 @@
   const getCategoryNameSafe  = (typeof getCategoryName  === 'function') ? getCategoryName  : (k)=>k ;
   const getFilteredSitesSafe = (typeof getFilteredSitesWithCache === 'function') ? getFilteredSitesWithCache : ((typeof getFilteredSites === 'function') ? getFilteredSites : () => []);
   const shareSiteSafe        = (typeof shareSite === 'function') ? shareSite : function(){};
-  const state                = (typeof window !== 'undefined' && window.state) ? window.state : { sites: [], ITEMS_PER_PAGE: 5, currentPageByCategory: {}, currentCategoryFilter: 'all' };
+  const state                = (typeof window !== 'undefined' && window.state) ? window.state : { sites: [], ITEMS_PER_PAGE: 10, currentPageByCategory: {}, currentCategoryFilter: 'all' };
   const GOV_ICON             = (typeof GOV_ICON_DATA_URL !== 'undefined') ? GOV_ICON_DATA_URL : '';
   const HL                   = (typeof window !== 'undefined' && window.ddakHighlight) ? window.ddakHighlight : { apply(){}, clear(){} };
 
@@ -38,6 +38,17 @@
     } catch {
       return String(url).replace(/^https?:\/\//i, '').replace(/^www\./i,'').replace(/\/+$/,'');
     }
+  }
+
+  function getItemsPerPage() {
+    const fromState = Number(state.ITEMS_PER_PAGE);
+    if (!Number.isNaN(fromState) && fromState > 0) return fromState;
+
+    const select = document.getElementById('itemsPerPage');
+    const fromSelect = Number(select?.value);
+    if (!Number.isNaN(fromSelect) && fromSelect > 0) return fromSelect;
+
+    return 10;
   }
 
   
@@ -220,7 +231,7 @@
     if (!container) return;
     container.innerHTML = '';
 
-    const perPage = state.ITEMS_PER_PAGE || 5;
+    const perPage = getItemsPerPage();
     const totalPages = Math.ceil(totalItems / perPage);
     if (totalPages <= 1) return;
 
@@ -287,7 +298,7 @@
     if (totalCountEl) totalCountEl.textContent = String(total);
     if (filteredCountEl) filteredCountEl.textContent = String(filtered);
     if (paginationInfo){
-      const perPage = state.ITEMS_PER_PAGE || 5;
+      const perPage = getItemsPerPage();
       const totalPages = Math.ceil(filtered / perPage) || 1;
       paginationInfo.textContent = `📄 ${perPage}개씩 보기 · 1/${totalPages} 페이지`;
     }
@@ -374,7 +385,7 @@
           slice = list; // 선택 카테고리는 전체 노출
         } else {
           const currentPage = (state.currentPageByCategory && state.currentPageByCategory[category]) || 1;
-          const perPage     = state.ITEMS_PER_PAGE || 20;
+          const perPage     = getItemsPerPage();
           const startIdx    = (currentPage - 1) * perPage;
           const endIdx      = startIdx + perPage;
           slice = list.slice(startIdx, endIdx);
@@ -407,7 +418,7 @@
 
       const total = (state.sites && state.sites.length) || 0;
       const filteredLen = filtered.length;
-      const perPage = state.ITEMS_PER_PAGE || 20;
+      const perPage = getItemsPerPage();
       const totalPages = Math.ceil(filteredLen / perPage) || 1;
       const statsChanged = (
         renderState.prevStats.total !== total ||

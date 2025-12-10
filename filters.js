@@ -45,17 +45,14 @@ function getFilteredSites() {
     // 검색어가 없으면 통과
     if (!q) return true;
 
-    // 검색 대상 문자열
-    const ageNames = window.ddakpilmoConfig?.ageNames || {};
-    const subjectNames = window.ddakpilmoConfig?.subjectNames || {};
-    
-    const searchTarget = (
-      site.name + " " + 
-      (site.desc || "") + " " + 
-      getCategoryName(site.category) + " " +
-      site.ages.map(a => ageNames[a] || a).join(" ") + " " +
-      site.subjects.map(sub => subjectNames[sub] || sub).join(" ") + " " +
-      (site.chosung || "")
+    // 검색 대상 문자열(사전 계산된 searchBlob 우선 사용)
+    const searchTarget = site.searchBlob || (
+      (site.name || '') + ' ' +
+      (site.desc || '') + ' ' +
+      getCategoryName(site.category) + ' ' +
+      (site.ages || []).join(' ') + ' ' +
+      (site.subjects || []).join(' ') + ' ' +
+      (site.chosung || '')
     ).toLowerCase();
 
     const tokens = q.split(/\s+/).filter(t => t.length > 0);
@@ -64,6 +61,7 @@ function getFilteredSites() {
     return tokens.every(token => {
       const tokenChosung = getChosung(token).toLowerCase();
       const siteChosung = (site.chosung || "").toLowerCase();
+      const siteNameChosung = (site.nameChosung || "").toLowerCase();
 
       // 일반 문자열 포함
       if (searchTarget.includes(token)) return true;
@@ -71,7 +69,7 @@ function getFilteredSites() {
       // 초성 검색
       if (siteChosung.includes(token)) return true;
       if (siteChosung.includes(tokenChosung)) return true;
-      if (getChosung(site.name).toLowerCase().includes(tokenChosung)) return true;
+      if (siteNameChosung.includes(tokenChosung)) return true;
 
       return false;
     });

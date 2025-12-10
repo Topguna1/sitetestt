@@ -16,7 +16,7 @@ const state = {
   currentSearchQuery: "",
   
   // 페이지네이션
-  ITEMS_PER_PAGE: 5,
+  ITEMS_PER_PAGE: 10,
   currentPageByCategory: {},
   
   // 확장된 카테고리

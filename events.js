@@ -294,6 +294,11 @@ function setupEventListeners() {
   // 페이지당 개수 변경
   const itemsPerPage = document.getElementById("itemsPerPage");
   if (itemsPerPage) {
+    const initialPerPage = parseInt(itemsPerPage.value, 10);
+    if (!Number.isNaN(initialPerPage) && initialPerPage > 0) {
+      window.state.ITEMS_PER_PAGE = initialPerPage;
+    }
+
     const handler = (e) => {
       window.state.ITEMS_PER_PAGE = parseInt(e.target.value, 10);
       window.state.currentPageByCategory = {};
