@@ -139,6 +139,53 @@
     </div>
   </div>
 
+  <!-- ======================== 설정 플로팅 버튼 ======================== -->
+  <div class="floating-settings" aria-label="사이트 설정">
+    <button class="settings-fab" id="settingsToggle" aria-expanded="false" aria-controls="settingsPanel" type="button">
+      ⚙️ 설정
+    </button>
+
+    <div class="settings-panel" id="settingsPanel" role="dialog" aria-hidden="true" aria-label="빠른 설정">
+      <div class="settings-header">
+        <span>빠른 설정</span>
+        <button class="settings-close" id="settingsClose" type="button" aria-label="설정 닫기">✕</button>
+      </div>
+
+      <div class="settings-group" aria-label="테마 모드 선택">
+        <h4>테마</h4>
+        <label class="settings-option">
+          <input type="radio" name="themeMode" value="light" />
+          <span>☀️ 라이트 모드</span>
+        </label>
+        <label class="settings-option">
+          <input type="radio" name="themeMode" value="dark" />
+          <span>🌙 다크 모드</span>
+        </label>
+        <label class="settings-option">
+          <input type="radio" name="themeMode" value="system" />
+          <span>🖥️ 시스템 기본값</span>
+        </label>
+      </div>
+
+      <div class="settings-divider" aria-hidden="true"></div>
+
+      <div class="settings-group" aria-label="글꼴 크기 조절">
+        <h4>글꼴 크기</h4>
+        <div class="font-scale-controls">
+          <div class="font-scale-buttons">
+            <button id="fontScaleDown" type="button" aria-label="글꼴 작게">-</button>
+            <span class="font-scale-value" id="fontScaleValue">100%</span>
+            <button id="fontScaleUp" type="button" aria-label="글꼴 크게">+</button>
+          </div>
+          <button id="fontScaleReset" type="button" aria-label="글꼴 크기 초기화">초기화</button>
+        </div>
+        <p style="margin-top:8px; font-size: 12px; color: var(--color-text-muted);">
+          현재 폰트에서 약간씩만 조절됩니다.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- ======================== 푸터 ======================== -->
   <footer style="
     background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
