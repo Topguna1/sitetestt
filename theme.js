@@ -106,13 +106,13 @@ function manageSystemListener(mode) {
   if (mode === 'system' && systemMediaQuery) {
     if (!systemChangeHandler) {
       systemChangeHandler = () => applyTheme('system', { skipSave: true });
-      addMediaQueryChangeListener(systemMediaQuery, systemChangeHandler);
+      systemMediaQuery.addEventListener('change', systemChangeHandler);
     }
     return;
   }
 
   if (systemMediaQuery && systemChangeHandler) {
-    removeMediaQueryChangeListener(systemMediaQuery, systemChangeHandler);
+    systemMediaQuery.removeEventListener('change', systemChangeHandler);
     systemChangeHandler = null;
   }
 }
