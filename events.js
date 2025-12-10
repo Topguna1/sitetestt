@@ -480,6 +480,133 @@ function updateSearchInputValue(input, value, cursor) {
   }
 }
 
+function syncThemeControls(state) {
+  const themeInputs = document.querySelectorAll('input[name="themeMode"]');
+  themeInputs.forEach((input) => {
+    input.checked = input.value === state.mode;
+  });
+}
+
+function syncFontScaleControls(scale) {
+  const fontValue = document.getElementById('fontScaleValue');
+  const downBtn = document.getElementById('fontScaleDown');
+  const upBtn = document.getElementById('fontScaleUp');
+  const min = 0.9;
+  const max = 1.1;
+
+  if (fontValue) {
+    fontValue.textContent = `${Math.round(scale * 100)}%`;
+  }
+
+  if (downBtn) {
+    downBtn.disabled = scale <= min + 0.0001;
+  }
+
+  if (upBtn) {
+    upBtn.disabled = scale >= max - 0.0001;
+  }
+}
+
+function setupSettingsControls(manager) {
+  const settingsToggle = document.getElementById('settingsToggle');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const settingsClose = document.getElementById('settingsClose');
+  const themeInputs = document.querySelectorAll('input[name="themeMode"]');
+  const fontScaleDown = document.getElementById('fontScaleDown');
+  const fontScaleUp = document.getElementById('fontScaleUp');
+  const fontScaleReset = document.getElementById('fontScaleReset');
+  const step = 0.05;
+
+  if (!settingsToggle || !settingsPanel) return;
+
+  const setPanelOpen = (open) => {
+    settingsPanel.classList.toggle('open', open);
+    settingsPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    settingsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  const handleSettingsToggle = (e) => {
+    e.preventDefault();
+    const willOpen = !settingsPanel.classList.contains('open');
+    setPanelOpen(willOpen);
+  };
+
+  const handleSettingsClose = (e) => {
+    e.preventDefault();
+    setPanelOpen(false);
+  };
+
+  const handleOutsideClick = (e) => {
+    if (!settingsPanel.classList.contains('open')) return;
+    if (settingsPanel.contains(e.target) || e.target === settingsToggle) return;
+    setPanelOpen(false);
+  };
+
+  if (manager) {
+    manager.add(settingsToggle, 'click', handleSettingsToggle);
+    if (settingsClose) manager.add(settingsClose, 'click', handleSettingsClose);
+    manager.add(document, 'click', handleOutsideClick);
+  } else {
+    settingsToggle.addEventListener('click', handleSettingsToggle);
+    if (settingsClose) settingsClose.addEventListener('click', handleSettingsClose);
+    document.addEventListener('click', handleOutsideClick);
+  }
+
+  themeInputs.forEach((input) => {
+    const onChange = (e) => window.themeManager?.setTheme(e.target.value);
+    if (manager) {
+      manager.add(input, 'change', onChange);
+    } else {
+      input.addEventListener('change', onChange);
+    }
+  });
+
+  if (fontScaleDown) {
+    const onClick = () => window.themeManager?.adjustFontScale(-step);
+    manager ? manager.add(fontScaleDown, 'click', onClick) : fontScaleDown.addEventListener('click', onClick);
+  }
+
+  if (fontScaleUp) {
+    const onClick = () => window.themeManager?.adjustFontScale(step);
+    manager ? manager.add(fontScaleUp, 'click', onClick) : fontScaleUp.addEventListener('click', onClick);
+  }
+
+  if (fontScaleReset) {
+    const onClick = () => window.themeManager?.resetFontScale();
+    manager ? manager.add(fontScaleReset, 'click', onClick) : fontScaleReset.addEventListener('click', onClick);
+  }
+
+  const initialState = window.themeManager?.getState ? window.themeManager.getState() : null;
+  if (initialState) {
+    syncThemeControls(initialState);
+    syncFontScaleControls(initialState.fontScale);
+  }
+
+  if (window.themeManager?.addThemeChangeListener) {
+    window.themeManager.addThemeChangeListener((state) => syncThemeControls(state));
+  }
+
+  if (window.themeManager?.addFontScaleListener) {
+    window.themeManager.addFontScaleListener((scale) => syncFontScaleControls(scale));
+  }
+}
+
+function updateSearchInputValue(input, value, cursor) {
+  if (!input) return;
+
+  const start = cursor?.start ?? input.selectionStart;
+  const end = cursor?.end ?? input.selectionEnd;
+
+  input.value = value;
+
+  if (typeof start === 'number' && typeof end === 'number' && typeof input.setSelectionRange === 'function') {
+    const length = input.value.length;
+    const safeStart = Math.min(Math.max(start, 0), length);
+    const safeEnd = Math.min(Math.max(end, 0), length);
+    input.setSelectionRange(safeStart, safeEnd);
+  }
+}
+
 function updateSearchInputValue(input, value, cursor) {
   if (!input) return;
 

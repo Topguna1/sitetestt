@@ -52,6 +52,32 @@ function getSystemTheme() {
   return systemMediaQuery.matches ? 'dark' : 'light';
 }
 
+function addMediaQueryChangeListener(mql, handler) {
+  if (!mql || typeof handler !== 'function') return;
+
+  if (typeof mql.addEventListener === 'function') {
+    mql.addEventListener('change', handler);
+    return;
+  }
+
+  if (typeof mql.addListener === 'function') {
+    mql.addListener(handler);
+  }
+}
+
+function removeMediaQueryChangeListener(mql, handler) {
+  if (!mql || typeof handler !== 'function') return;
+
+  if (typeof mql.removeEventListener === 'function') {
+    mql.removeEventListener('change', handler);
+    return;
+  }
+
+  if (typeof mql.removeListener === 'function') {
+    mql.removeListener(handler);
+  }
+}
+
 function updateDarkToggleLabel(effectiveTheme, mode) {
   const darkToggle = document.getElementById('darkToggle');
   if (!darkToggle) return;

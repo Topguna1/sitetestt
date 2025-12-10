@@ -328,6 +328,29 @@ function getSiteSource() {
 
 function getSiteSource() {
   const sources = [
+    { source: 'initialSites', sites: typeof initialSites !== 'undefined' ? initialSites : undefined },
+    { source: 'dataLoader.sites', sites: window.dataLoader?.sites }
+  ];
+
+  for (const candidate of sources) {
+    if (Array.isArray(candidate.sites) && candidate.sites.length > 0) {
+      return candidate;
+    }
+  }
+
+  const details = sources
+    .map(entry => {
+      if (!entry.sites) return `${entry.source}:missing`;
+      if (!Array.isArray(entry.sites)) return `${entry.source}:not-array`;
+      return `${entry.source}:empty`;
+    })
+    .join(', ');
+
+  throw new Error(`사이트 데이터를 찾을 수 없습니다 (${details})`);
+}
+
+function getSiteSource() {
+  const sources = [
     {
       source: 'initialSites',
       sites: typeof initialSites !== 'undefined' ? initialSites : undefined
