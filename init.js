@@ -130,9 +130,8 @@ function init() {
 
   try {
     // 데이터 확인
-    if (typeof initialSites === 'undefined' || !Array.isArray(initialSites)) {
-      throw new Error("initialSites 데이터를 찾을 수 없습니다");
-    }
+    const siteSource = getSiteSource();
+    const sourceSites = siteSource.sites;
 
     const ageNames = window.ddakpilmoConfig?.ageNames || {};
     const subjectNames = window.ddakpilmoConfig?.subjectNames || {};
@@ -161,7 +160,7 @@ function init() {
     }
 
     // 사이트 데이터 처리
-    window.state.sites = initialSites.map(site => {
+    window.state.sites = sourceSites.map(site => {
       try {
         const url = site.url || "";
         let isGovAuto = false;
@@ -197,7 +196,7 @@ function init() {
       }
     });
     
-    console.log(`✅ ${window.state.sites.length}개 사이트 로드 완료`);
+    console.log(`✅ ${window.state.sites.length}개 사이트 로드 완료 (source: ${siteSource.source})`);
 
     // 초기화 단계
     const initSteps = [
@@ -233,6 +232,39 @@ function init() {
     console.error("❌ 초기화 중 심각한 오류:", error);
     handleInitializationFailure(error);
   }
+}
+
+function getSiteSource() {
+  const sources = [
+    {
+      source: 'initialSites',
+      sites: typeof initialSites !== 'undefined' ? initialSites : undefined
+    },
+    {
+      source: 'dataLoader.sites',
+      sites: window.dataLoader?.sites
+    },
+    {
+      source: 'state.rawSites',
+      sites: window.state?.rawSites
+    }
+  ];
+
+  for (const candidate of sources) {
+    if (Array.isArray(candidate.sites) && candidate.sites.length > 0) {
+      return candidate;
+    }
+  }
+
+  const details = sources
+    .map(entry => {
+      if (!entry.sites) return `${entry.source}:missing`;
+      if (!Array.isArray(entry.sites)) return `${entry.source}:not-array`;
+      return `${entry.source}:empty`;
+    })
+    .join(', ');
+
+  throw new Error(`사이트 데이터를 찾을 수 없습니다 (${details})`);
 }
 
 // 초기화 실패 처리
