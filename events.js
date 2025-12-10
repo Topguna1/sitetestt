@@ -162,7 +162,8 @@ function setupEventListeners() {
           e.preventDefault();
           e.stopPropagation();
 
-          updateSearchInputValue(searchInput, site.name);
+          const cursor = { start: searchInput.selectionStart, end: searchInput.selectionEnd };
+          updateSearchInputValue(searchInput, site.name, cursor);
           window.state.currentSearchQuery = site.name;
           window.state.currentPageByCategory = {};
           autocompleteList.innerHTML = "";
@@ -196,14 +197,16 @@ function setupEventListeners() {
       items[currentFocus].scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
 
       const val = getAutocompleteTitle(items[currentFocus]);
-      updateSearchInputValue(this, val);
+      const cursor = { start: this.selectionStart, end: this.selectionEnd };
+      updateSearchInputValue(this, val, cursor);
       debouncedSearch(val);
 
     } else if (e.key === "Enter") {
       if (hasItems && currentFocus > -1 && items[currentFocus]) {
         e.preventDefault();
         const val = getAutocompleteTitle(items[currentFocus]);
-        updateSearchInputValue(this, val);
+        const cursor = { start: this.selectionStart, end: this.selectionEnd };
+        updateSearchInputValue(this, val, cursor);
         debouncedSearch(val);
         autocompleteList.innerHTML = "";
         currentFocus = -1;

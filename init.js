@@ -236,8 +236,18 @@ function init() {
 
 function getSiteSource() {
   const sources = [
-    { source: 'initialSites', sites: typeof initialSites !== 'undefined' ? initialSites : undefined },
-    { source: 'dataLoader.sites', sites: window.dataLoader?.sites }
+    {
+      source: 'initialSites',
+      sites: typeof initialSites !== 'undefined' ? initialSites : undefined
+    },
+    {
+      source: 'dataLoader.sites',
+      sites: window.dataLoader?.sites
+    },
+    {
+      source: 'state.rawSites',
+      sites: window.state?.rawSites
+    }
   ];
 
   for (const candidate of sources) {
