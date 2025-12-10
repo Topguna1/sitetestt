@@ -99,6 +99,22 @@ function updateSearchInputValue(input, value, cursor) {
   }
 }
 
+function updateSearchInputValue(input, value, cursor) {
+  if (!input) return;
+
+  const start = cursor?.start ?? input.selectionStart;
+  const end = cursor?.end ?? input.selectionEnd;
+
+  input.value = value;
+
+  if (typeof start === 'number' && typeof end === 'number' && typeof input.setSelectionRange === 'function') {
+    const length = input.value.length;
+    const safeStart = Math.min(Math.max(start, 0), length);
+    const safeEnd = Math.min(Math.max(end, 0), length);
+    input.setSelectionRange(safeStart, safeEnd);
+  }
+}
+
 // 이벤트 리스너 설정
 function setupEventListeners() {
   console.log("🔧 이벤트 리스너 설정 시작...");
